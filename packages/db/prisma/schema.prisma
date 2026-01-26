@@ -1,0 +1,1020 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Organizations & Teams
+// ============================================
+
+model Organization {
+  id             String   @id @default(cuid())
+  githubId       Int      @unique
+  login          String   @unique
+  name           String?
+  avatarUrl      String?
+  installationId Int?     @unique
+  
+  teams          Team[]
+  repositories   Repository[]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@map("organizations")
+}
+
+model Team {
+  id             String   @id @default(cuid())
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  settings       Json     @default("{}")
+  subscription   Subscription?
+  
+  members        TeamMember[]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@unique([organizationId, name])
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  teamId   String
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     TeamRole @default(MEMBER)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+// ============================================
+// Users
+// ============================================
+
+model User {
+  id            String   @id @default(cuid())
+  githubId      Int      @unique
+  login         String   @unique
+  name          String?
+  email         String?
+  avatarUrl     String?
+  
+  teams         TeamMember[]
+  sessions      Session[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken  String
+  refreshToken String?
+  expiresAt    DateTime
+  
+  createdAt    DateTime @default(now())
+  
+  @@map("sessions")
+}
+
+// ============================================
+// Repositories
+// ============================================
+
+model Repository {
+  id              String   @id @default(cuid())
+  githubId        Int      @unique
+  name            String
+  fullName        String   @unique
+  owner           String
+  organizationId  String?
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  
+  isPrivate       Boolean  @default(false)
+  defaultBranch   String   @default("main")
+  
+  settings        RepositorySettings?
+  workflows       PRWorkflow[]
+  testPatterns    TestPattern[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("repositories")
+}
+
+model RepositorySettings {
+  id             String   @id @default(cuid())
+  repositoryId   String   @unique
+  repository     Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  
+  reviewEnabled        Boolean @default(true)
+  testGenerationEnabled Boolean @default(true)
+  docUpdatesEnabled    Boolean @default(true)
+  assignmentEnabled    Boolean @default(false)
+  mergeEnabled         Boolean @default(false)
+  
+  severityThreshold    Severity @default(MEDIUM)
+  autoFixStyle         Boolean @default(true)
+  blockOnCritical      Boolean @default(true)
+  
+  customRules          Json    @default("[]")
+  ignorePaths          String[] @default([])
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@map("repository_settings")
+}
+
+model TestPattern {
+  id           String   @id @default(cuid())
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  
+  framework    String
+  pattern      String
+  example      String?
+  
+  createdAt    DateTime @default(now())
+  
+  @@map("test_patterns")
+}
+
+// ============================================
+// PR Workflows
+// ============================================
+
+model PRWorkflow {
+  id             String   @id @default(cuid())
+  repositoryId   String
+  repository     Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  
+  prNumber       Int
+  prTitle        String
+  prUrl          String
+  headBranch     String
+  baseBranch     String
+  authorLogin    String
+  
+  status         WorkflowStatus @default(PENDING)
+  
+  analysis       PRAnalysis?
+  reviewComments ReviewComment[]
+  generatedTests GeneratedTest[]
+  docUpdates     DocUpdate[]
+  synthesis      PRSynthesis?
+  
+  checkRunId     Int?
+  
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@unique([repositoryId, prNumber])
+  @@index([status])
+  @@map("pr_workflows")
+}
+
+enum WorkflowStatus {
+  PENDING
+  ANALYZING
+  REVIEWING
+  GENERATING_TESTS
+  UPDATING_DOCS
+  SYNTHESIZING
+  COMPLETED
+  FAILED
+}
+
+// ============================================
+// Analysis Results
+// ============================================
+
+model PRAnalysis {
+  id           String   @id @default(cuid())
+  workflowId   String   @unique
+  workflow     PRWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  prType       PRType
+  riskLevel    RiskLevel
+  
+  filesModified Int
+  linesAdded    Int
+  linesRemoved  Int
+  
+  semanticChanges Json
+  impactRadius    Json
+  risks           String[]
+  suggestedReviewers Json
+  
+  latencyMs    Int
+  createdAt    DateTime @default(now())
+  
+  @@map("pr_analyses")
+}
+
+enum PRType {
+  FEATURE
+  BUGFIX
+  REFACTOR
+  DOCS
+  CHORE
+  TEST
+  DEPS
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// ============================================
+// Review Comments
+// ============================================
+
+model ReviewComment {
+  id           String   @id @default(cuid())
+  workflowId   String
+  workflow     PRWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  file         String
+  line         Int
+  endLine      Int?
+  
+  severity     Severity
+  category     ReviewCategory
+  message      String
+  suggestion   Json?
+  confidence   Float
+  
+  githubCommentId Int?
+  status       CommentStatus @default(POSTED)
+  
+  fixApplications FixApplication[]
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([workflowId])
+  @@map("review_comments")
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  NITPICK
+}
+
+enum ReviewCategory {
+  SECURITY
+  BUG
+  PERFORMANCE
+  ERROR_HANDLING
+  TESTING
+  DOCUMENTATION
+  STYLE
+  MAINTAINABILITY
+}
+
+enum CommentStatus {
+  PENDING
+  POSTED
+  DISMISSED
+  RESOLVED
+  FALSE_POSITIVE
+  FIX_APPLIED
+}
+
+// ============================================
+// Fix Applications (Interactive Fix Feature)
+// ============================================
+
+model FixApplication {
+  id              String   @id @default(cuid())
+  commentId       String
+  comment         ReviewComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  
+  repositoryId    String
+  prNumber        Int
+  headBranch      String
+  
+  file            String
+  originalCode    String
+  suggestedCode   String
+  
+  commitSha       String?
+  commitMessage   String?
+  
+  status          FixStatus @default(PENDING)
+  errorMessage    String?
+  
+  appliedBy       String?
+  appliedAt       DateTime?
+  createdAt       DateTime @default(now())
+  
+  @@index([commentId])
+  @@index([repositoryId, prNumber])
+  @@map("fix_applications")
+}
+
+model BatchFixApplication {
+  id              String   @id @default(cuid())
+  repositoryId    String
+  prNumber        Int
+  headBranch      String
+  
+  fixIds          String[]
+  commitSha       String?
+  commitMessage   String?
+  
+  status          FixStatus @default(PENDING)
+  errorMessage    String?
+  
+  appliedBy       String?
+  appliedAt       DateTime?
+  createdAt       DateTime @default(now())
+  
+  @@index([repositoryId, prNumber])
+  @@map("batch_fix_applications")
+}
+
+enum FixStatus {
+  PENDING
+  APPLYING
+  APPLIED
+  FAILED
+  CONFLICTED
+  REVERTED
+}
+
+// ============================================
+// Generated Tests
+// ============================================
+
+model GeneratedTest {
+  id           String   @id @default(cuid())
+  workflowId   String
+  workflow     PRWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  testFile     String
+  targetFile   String
+  framework    String
+  testCode     String
+  coverageTargets String[]
+  
+  validated    Boolean  @default(false)
+  passedValidation Boolean?
+  
+  status       TestStatus @default(GENERATED)
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([workflowId])
+  @@map("generated_tests")
+}
+
+enum TestStatus {
+  GENERATED
+  VALIDATED
+  SUGGESTED
+  ACCEPTED
+  REJECTED
+}
+
+// ============================================
+// Doc Updates
+// ============================================
+
+model DocUpdate {
+  id           String   @id @default(cuid())
+  workflowId   String
+  workflow     PRWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  docType      DocType
+  file         String
+  content      String
+  reason       String
+  
+  status       DocStatus @default(SUGGESTED)
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([workflowId])
+  @@map("doc_updates")
+}
+
+enum DocType {
+  JSDOC
+  README
+  CHANGELOG
+  API_DOCS
+  INLINE_COMMENT
+}
+
+enum DocStatus {
+  SUGGESTED
+  ACCEPTED
+  REJECTED
+}
+
+// ============================================
+// Synthesis
+// ============================================
+
+model PRSynthesis {
+  id           String   @id @default(cuid())
+  workflowId   String   @unique
+  workflow     PRWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  summary      String
+  riskAssessment Json
+  findingsSummary Json
+  humanReviewChecklist Json
+  
+  createdAt    DateTime @default(now())
+  
+  @@map("pr_syntheses")
+}
+
+// ============================================
+// Subscriptions
+// ============================================
+
+model Subscription {
+  id           String   @id @default(cuid())
+  teamId       String   @unique
+  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  tier         SubscriptionTier @default(FREE)
+  status       SubscriptionStatus @default(ACTIVE)
+  
+  prLimit      Int?
+  seatLimit    Int?
+  
+  stripeCustomerId String?
+  stripeSubscriptionId String?
+  
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@map("subscriptions")
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+}
+
+// ============================================
+// Analytics Events
+// ============================================
+
+model AnalyticsEvent {
+  id           String   @id @default(cuid())
+  repositoryId String
+  workflowId   String?
+  
+  eventType    String
+  eventData    Json
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([repositoryId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("analytics_events")
+}
+
+// ============================================
+// PR Health Score (Dashboard Feature)
+// ============================================
+
+model PRHealthScore {
+  id              String   @id @default(cuid())
+  workflowId      String   @unique
+  repositoryId    String
+  prNumber        Int
+  
+  overallScore    Float
+  reviewLatencyScore Float
+  commentDensityScore Float
+  approvalVelocityScore Float
+  riskScore       Float
+  testCoverageScore Float
+  
+  reviewLatencyMinutes Int?
+  commentCount    Int      @default(0)
+  approvalCount   Int      @default(0)
+  changeRequestCount Int   @default(0)
+  
+  predictedMergeDate DateTime?
+  blockers        String[] @default([])
+  recommendations String[] @default([])
+  
+  calculatedAt    DateTime @default(now())
+  
+  @@index([repositoryId])
+  @@index([prNumber])
+  @@index([calculatedAt])
+  @@map("pr_health_scores")
+}
+
+model TeamHealthMetrics {
+  id              String   @id @default(cuid())
+  repositoryId    String
+  
+  periodStart     DateTime
+  periodEnd       DateTime
+  
+  avgReviewLatencyMinutes Float
+  avgCycleTimeHours Float
+  avgPRsPerWeek   Float
+  avgCommentsPerPR Float
+  
+  throughputScore Float
+  qualityScore    Float
+  velocityScore   Float
+  
+  topBlockers     Json     @default("[]")
+  trends          Json     @default("{}")
+  
+  calculatedAt    DateTime @default(now())
+  
+  @@unique([repositoryId, periodStart, periodEnd])
+  @@index([repositoryId])
+  @@map("team_health_metrics")
+}
+
+// ============================================
+// Codebase Learning Engine (Learning Feature)
+// ============================================
+
+model ReviewPattern {
+  id              String   @id @default(cuid())
+  repositoryId    String
+  
+  patternType     PatternType
+  pattern         String
+  context         Json
+  frequency       Int      @default(1)
+  confidence      Float    @default(0.5)
+  
+  lastSeenAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+  
+  @@unique([repositoryId, patternType, pattern])
+  @@index([repositoryId])
+  @@index([patternType])
+  @@map("review_patterns")
+}
+
+enum PatternType {
+  NAMING_CONVENTION
+  CODE_STYLE
+  ERROR_HANDLING
+  TEST_PATTERN
+  DOCUMENTATION
+  SECURITY
+  ARCHITECTURE
+  API_DESIGN
+}
+
+model ReviewFeedback {
+  id              String   @id @default(cuid())
+  commentId       String
+  repositoryId    String
+  
+  feedbackType    FeedbackType
+  originalSuggestion String?
+  userAction      String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([repositoryId])
+  @@index([feedbackType])
+  @@map("review_feedback")
+}
+
+enum FeedbackType {
+  ACCEPTED
+  REJECTED
+  MODIFIED
+  DISMISSED
+  FALSE_POSITIVE
+}
+
+model CodebaseContext {
+  id              String   @id @default(cuid())
+  repositoryId    String   @unique
+  
+  detectedFrameworks String[] @default([])
+  detectedLanguages String[] @default([])
+  testFramework   String?
+  styleGuide      Json?
+  
+  learnedPatterns Json     @default("{}")
+  conventionRules Json     @default("[]")
+  
+  lastAnalyzedAt  DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("codebase_contexts")
+}
+
+// ============================================
+// PR Splitting Assistant Models
+// ============================================
+
+enum SplitStatus {
+  PROPOSED
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  FAILED
+}
+
+enum SplitStrategy {
+  BY_FEATURE
+  BY_LAYER
+  BY_FILE_TYPE
+  BY_DEPENDENCY
+  MANUAL
+}
+
+model PRSplitProposal {
+  id              String       @id @default(cuid())
+  workflowId      String
+  repositoryId    String
+  
+  originalPrNumber Int
+  originalBranch   String
+  baseBranch       String
+  
+  status          SplitStatus  @default(PROPOSED)
+  strategy        SplitStrategy
+  
+  totalFiles      Int
+  totalAdditions  Int
+  totalDeletions  Int
+  
+  reasoning       String?      // AI explanation for the split
+  confidence      Float        @default(0.8)
+  
+  proposedAt      DateTime     @default(now())
+  acceptedAt      DateTime?
+  completedAt     DateTime?
+  
+  createdBy       String?
+  
+  splits          PRSplit[]
+  
+  @@index([workflowId])
+  @@index([repositoryId])
+  @@index([status])
+  @@map("pr_split_proposals")
+}
+
+model PRSplit {
+  id              String       @id @default(cuid())
+  proposalId      String
+  
+  splitIndex      Int          // Order in the split sequence
+  name            String       // e.g., "Add user authentication"
+  description     String?
+  
+  branchName      String?      // Created branch name
+  prNumber        Int?         // Created PR number
+  
+  files           Json         // Array of file paths in this split
+  additions       Int          @default(0)
+  deletions       Int          @default(0)
+  
+  dependencies    String[]     @default([]) // IDs of splits this depends on
+  
+  status          SplitStatus  @default(PROPOSED)
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  proposal        PRSplitProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  
+  @@index([proposalId])
+  @@index([status])
+  @@map("pr_splits")
+}
+
+model PRStack {
+  id              String       @id @default(cuid())
+  repositoryId    String
+  
+  name            String
+  baseBranch      String
+  
+  status          String       @default("active") // active, merged, abandoned
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  items           PRStackItem[]
+  
+  @@index([repositoryId])
+  @@map("pr_stacks")
+}
+
+model PRStackItem {
+  id              String       @id @default(cuid())
+  stackId         String
+  
+  prNumber        Int
+  branchName      String
+  position        Int          // Order in the stack (1 = bottom/first to merge)
+  
+  status          String       @default("pending") // pending, merged, blocked
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  stack           PRStack      @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  
+  @@unique([stackId, position])
+  @@index([stackId])
+  @@map("pr_stack_items")
+}
+
+// ============================================
+// Review Debt Dashboard Models
+// ============================================
+
+enum DebtCategory {
+  SECURITY
+  TECHNICAL
+  TESTING
+  DOCUMENTATION
+  PERFORMANCE
+  ACCESSIBILITY
+  COMPLIANCE
+  DEPRECATED
+}
+
+enum DebtSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum DebtStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  DEFERRED
+  WONT_FIX
+}
+
+model DebtItem {
+  id              String       @id @default(cuid())
+  repositoryId    String
+  workflowId      String?      // Link to PR that introduced or found this debt
+  
+  title           String
+  description     String?
+  category        DebtCategory
+  severity        DebtSeverity
+  status          DebtStatus   @default(OPEN)
+  
+  file            String?      // File where debt is located
+  line            Int?         // Line number
+  codeSnippet     String?      // Relevant code
+  
+  estimatedEffort Int?         // Effort in hours
+  actualEffort    Int?         // Actual hours spent resolving
+  
+  assigneeLogin   String?      // GitHub username
+  
+  sourceType      String       @default("automated") // automated, manual, skipped_review
+  sourcePrNumber  Int?         // PR that introduced this debt
+  
+  dueDate         DateTime?
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  resolutionNotes String?
+  
+  tags            String[]     @default([])
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  @@index([repositoryId])
+  @@index([category])
+  @@index([severity])
+  @@index([status])
+  @@index([assigneeLogin])
+  @@map("debt_items")
+}
+
+model DebtSprint {
+  id              String       @id @default(cuid())
+  repositoryId    String
+  
+  name            String
+  goal            String?
+  
+  startDate       DateTime
+  endDate         DateTime
+  
+  status          String       @default("planned") // planned, active, completed
+  
+  targetDebtItems String[]     @default([]) // IDs of debt items in this sprint
+  completedItems  String[]     @default([]) // IDs of completed items
+  
+  velocityTarget  Int?         // Target debt points to resolve
+  velocityActual  Int?         // Actual debt points resolved
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  @@index([repositoryId])
+  @@index([status])
+  @@map("debt_sprints")
+}
+
+model DebtPolicy {
+  id              String       @id @default(cuid())
+  repositoryId    String
+  
+  name            String
+  description     String?
+  
+  isActive        Boolean      @default(true)
+  
+  triggerCategory DebtCategory?
+  triggerSeverity DebtSeverity?
+  
+  autoBlock       Boolean      @default(false) // Block PR merge if debt detected
+  autoAssign      Boolean      @default(false) // Auto-assign to PR author
+  
+  maxDebtCount    Int?         // Max number of debt items allowed
+  maxDebtAge      Int?         // Max age in days before escalation
+  
+  notifyChannels  String[]     @default([]) // slack, email, github
+  escalateAfterDays Int?
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  @@unique([repositoryId, name])
+  @@index([repositoryId])
+  @@map("debt_policies")
+}
+
+model SkippedReview {
+  id              String       @id @default(cuid())
+  repositoryId    String
+  workflowId      String?
+  
+  prNumber        Int
+  prTitle         String
+  authorLogin     String
+  
+  reason          String       // urgency, emergency, time_pressure, etc.
+  justification   String?      // Free-form explanation
+  
+  skipApprovedBy  String?      // Who approved the skip
+  
+  riskLevel       RiskLevel    @default(MEDIUM)
+  
+  followUpRequired Boolean     @default(true)
+  followUpDeadline DateTime?
+  followUpCompleted Boolean    @default(false)
+  followUpNotes   String?
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  @@index([repositoryId])
+  @@index([authorLogin])
+  @@index([followUpRequired, followUpCompleted])
+  @@map("skipped_reviews")
+}
+
+// ============================================
+// Code Intent Analysis Models
+// ============================================
+
+enum IntentCategory {
+  FEATURE_ADDITION
+  BUG_FIX
+  REFACTOR
+  PERFORMANCE
+  SECURITY
+  DOCUMENTATION
+  TESTING
+  DEPENDENCY_UPDATE
+  CONFIGURATION
+  CLEANUP
+  HOTFIX
+  EXPERIMENT
+  REVERT
+  UNKNOWN
+}
+
+model IntentAnalysis {
+  id              String         @id @default(cuid())
+  repositoryId    String
+  workflowId      String?
+  prNumber        Int
+  
+  primaryIntent   IntentCategory
+  confidence      Float          @default(0.5)
+  
+  secondaryIntents Json          @default("[]") // Array of {category, confidence}
+  
+  signals         Json           @default("{}") // Branch, commit, file, code signals
+  
+  suggestedStrategy String?      // Review strategy recommendation
+  focusAreas      String[]       @default([])
+  
+  analyzedAt      DateTime       @default(now())
+  
+  @@unique([repositoryId, prNumber])
+  @@index([repositoryId])
+  @@index([primaryIntent])
+  @@map("intent_analyses")
+}
+
+model IntentFeedback {
+  id              String         @id @default(cuid())
+  analysisId      String
+  repositoryId    String
+  
+  wasAccurate     Boolean
+  correctIntent   IntentCategory?
+  feedbackNotes   String?
+  
+  submittedBy     String?        // GitHub username
+  submittedAt     DateTime       @default(now())
+  
+  @@index([repositoryId])
+  @@index([wasAccurate])
+  @@map("intent_feedback")
+}
+
+model IntentConfig {
+  id              String         @id @default(cuid())
+  repositoryId    String         @unique
+  
+  customBranchPatterns Json      @default("[]") // [{pattern, category}]
+  customCommitPatterns Json      @default("[]") // [{type, category}]
+  customKeywords  Json           @default("{}") // {category: [keywords]}
+  
+  minConfidenceThreshold Float   @default(0.6)
+  
+  enabledCategories String[]     @default([])
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  @@map("intent_configs")
+}
