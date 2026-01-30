@@ -1,0 +1,104 @@
+name: 'PRFlow'
+description: 'Intelligent PR analysis, code review, test generation, and documentation updates'
+author: 'PRFlow'
+
+branding:
+  icon: 'git-pull-request'
+  color: 'blue'
+
+inputs:
+  github-token:
+    description: 'GitHub token for API access'
+    required: true
+    default: ${{ github.token }}
+  
+  prflow-token:
+    description: 'PRFlow API key (optional, for advanced features)'
+    required: false
+  
+  review-enabled:
+    description: 'Enable automated code review'
+    required: false
+    default: 'true'
+  
+  test-generation:
+    description: 'Enable test generation'
+    required: false
+    default: 'true'
+  
+  doc-updates:
+    description: 'Enable documentation updates'
+    required: false
+    default: 'true'
+  
+  severity-threshold:
+    description: 'Minimum severity to report (critical, high, medium, low, nitpick)'
+    required: false
+    default: 'medium'
+  
+  auto-fix-style:
+    description: 'Automatically fix style issues'
+    required: false
+    default: 'true'
+  
+  block-on-critical:
+    description: 'Fail check on critical issues'
+    required: false
+    default: 'true'
+  
+  ignore-paths:
+    description: 'Comma-separated paths to ignore'
+    required: false
+    default: ''
+  
+  comment-on-pr:
+    description: 'Post summary comment on PR'
+    required: false
+    default: 'true'
+  
+  max-comments:
+    description: 'Maximum number of inline comments to post'
+    required: false
+    default: '25'
+  
+  fail-on-high:
+    description: 'Fail check if high severity issues found'
+    required: false
+    default: 'false'
+  
+  dry-run:
+    description: 'Run analysis without posting comments'
+    required: false
+    default: 'false'
+
+outputs:
+  analysis-summary:
+    description: 'Summary of the PR analysis'
+  
+  issues-found:
+    description: 'Number of issues found'
+  
+  tests-generated:
+    description: 'Number of tests generated'
+  
+  critical-count:
+    description: 'Number of critical issues'
+  
+  high-count:
+    description: 'Number of high severity issues'
+  
+  medium-count:
+    description: 'Number of medium severity issues'
+  
+  risk-level:
+    description: 'Overall risk level (low, medium, high, critical)'
+  
+  check-run-id:
+    description: 'ID of the created check run'
+  
+  pr-type:
+    description: 'Detected PR type (feature, bugfix, refactor, etc.)'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
