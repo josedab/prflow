@@ -1,0 +1,117 @@
+{
+  "name": "prflow-preflight",
+  "displayName": "PRFlow Pre-Flight Check",
+  "description": "Pre-commit code analysis powered by PRFlow - catch issues before creating a PR",
+  "version": "0.1.0",
+  "publisher": "prflow",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prflow/prflow"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "code review",
+    "pre-commit",
+    "PR",
+    "pull request",
+    "analysis",
+    "AI"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "prflow.runPreflight",
+        "title": "PRFlow: Run Pre-Flight Check"
+      },
+      {
+        "command": "prflow.runPreflightOnFile",
+        "title": "PRFlow: Check Current File"
+      },
+      {
+        "command": "prflow.showResults",
+        "title": "PRFlow: Show Results"
+      },
+      {
+        "command": "prflow.configure",
+        "title": "PRFlow: Configure"
+      }
+    ],
+    "configuration": {
+      "title": "PRFlow Pre-Flight",
+      "properties": {
+        "prflow.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:3001",
+          "description": "PRFlow API server URL"
+        },
+        "prflow.autoCheck": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically run pre-flight check on file save"
+        },
+        "prflow.showInlineHints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline hints for detected issues"
+        },
+        "prflow.minSeverity": {
+          "type": "string",
+          "default": "info",
+          "enum": ["info", "warning", "error", "critical"],
+          "description": "Minimum severity level to display"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "prflow.runPreflight",
+        "key": "ctrl+shift+p",
+        "mac": "cmd+shift+p",
+        "when": "editorTextFocus"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "prflow.runPreflightOnFile",
+          "group": "prflow"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "prflow.runPreflightOnFile",
+          "group": "prflow"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
