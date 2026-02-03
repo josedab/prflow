@@ -119,6 +119,7 @@ model Repository {
   settings        RepositorySettings?
   workflows       PRWorkflow[]
   testPatterns    TestPattern[]
+  reviewListings  ReviewListing[]
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -1017,4 +1018,576 @@ model IntentConfig {
   updatedAt       DateTime       @updatedAt
   
   @@map("intent_configs")
+}
+
+// ============================================
+// Semantic Versioning Bot Models
+// ============================================
+
+model SemverConfig {
+  id                   String   @id @default(cuid())
+  repositoryId         String   @unique
+  
+  versionFilePath      String   @default("package.json")
+  versionPattern       String?
+  autoCreateRelease    Boolean  @default(false)
+  autoUpdateChangelog  Boolean  @default(false)
+  changelogPath        String   @default("CHANGELOG.md")
+  commitPatterns       Json     @default("[]")
+  sectionOrder         Json     @default("[]")
+  includeContributors  Boolean  @default(true)
+  includePRLinks       Boolean  @default(true)
+  includeIssueLinks    Boolean  @default(true)
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@map("semver_configs")
+}
+
+model VersionBumpAnalysis {
+  id                String   @id @default(cuid())
+  repositoryId      String
+  
+  recommendedBump   String   // major, minor, patch, none
+  currentVersion    String?
+  suggestedVersion  String?
+  confidence        Float
+  factors           Json     @default("[]")
+  changes           Json     @default("[]")
+  
+  analyzedAt        DateTime @default(now())
+  
+  @@index([repositoryId])
+  @@index([analyzedAt])
+  @@map("version_bump_analyses")
+}
+
+model ReleaseRecord {
+  id               String   @id @default(cuid())
+  repositoryId     String
+  
+  version          String
+  tagName          String
+  title            String
+  releaseNotes     String   @db.Text
+  
+  githubReleaseId  Int?
+  releaseUrl       String?
+  
+  commitSha        String?
+  prsMerged        Int      @default(0)
+  contributors     String[] @default([])
+  
+  isDraft          Boolean  @default(false)
+  isPrerelease     Boolean  @default(false)
+  
+  releasedAt       DateTime @default(now())
+  createdAt        DateTime @default(now())
+  
+  @@unique([repositoryId, version])
+  @@index([repositoryId])
+  @@map("release_records")
+}
+
+// ============================================
+// PR Time Machine Models
+// ============================================
+
+model PRSnapshot {
+  id                  String   @id @default(cuid())
+  workflowId          String
+  repositoryId        String
+  prNumber            Int
+  
+  commitSha           String
+  headBranch          String
+  baseBranch          String
+  title               String
+  description         String?  @db.Text
+  
+  files               Json     @default("[]")  // SnapshotFile[]
+  linesAdded          Int      @default(0)
+  linesRemoved        Int      @default(0)
+  
+  labels              String[] @default([])
+  assignees           String[] @default([])
+  reviewStatus        String   @default("pending")
+  commentCount        Int      @default(0)
+  ciStatus            String?
+  
+  capturedAt          DateTime @default(now())
+  previousSnapshotId  String?
+  
+  @@index([workflowId])
+  @@index([repositoryId, prNumber])
+  @@index([commitSha])
+  @@index([capturedAt])
+  @@map("pr_snapshots")
+}
+
+model PRTimelineEvent {
+  id            String   @id @default(cuid())
+  workflowId    String
+  repositoryId  String
+  prNumber      Int
+  
+  type          String   // TimelineEventType
+  actor         String
+  timestamp     DateTime @default(now())
+  snapshotId    String?
+  
+  metadata      Json     @default("{}")
+  isSignificant Boolean  @default(false)
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([workflowId])
+  @@index([repositoryId, prNumber])
+  @@index([type])
+  @@index([timestamp])
+  @@map("pr_timeline_events")
+}
+
+model PRTimelineMilestone {
+  id          String   @id @default(cuid())
+  workflowId  String
+  
+  type        String   // first_review, first_approval, etc.
+  reachedAt   DateTime
+  eventId     String?
+  description String
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([workflowId, type])
+  @@index([workflowId])
+  @@map("pr_timeline_milestones")
+}
+
+// ============================================
+// Impact Simulator Models
+// ============================================
+
+model ImpactSimulation {
+  id                   String   @id @default(cuid())
+  repositoryId         String
+  workflowId           String
+  prNumber             Int
+  
+  commitSha            String
+  overallRiskScore     Float
+  riskLevel            String   // low, medium, high, critical
+  mergeRecommendation  String   // safe, caution, block
+  
+  impactCount          Int      @default(0)
+  blockingCount        Int      @default(0)
+  testsPredictedToFail Int      @default(0)
+  
+  result               Json     // Full ImpactSimulation object
+  
+  simulatedAt          DateTime @default(now())
+  createdAt            DateTime @default(now())
+  
+  @@index([repositoryId])
+  @@index([workflowId])
+  @@index([simulatedAt])
+  @@map("impact_simulations")
+}
+
+model ImpactSimulationConfig {
+  id                      String   @id @default(cuid())
+  repositoryId            String   @unique
+  
+  enableTestPrediction    Boolean  @default(true)
+  enableCrossRepoAnalysis Boolean  @default(false)
+  linkedRepositories      String[] @default([])
+  
+  riskThresholds          Json     @default("{\"low\": 25, \"medium\": 50, \"high\": 75}")
+  ignorePatterns          String[] @default([])
+  highRiskPatterns        String[] @default([])
+  
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  
+  @@map("impact_simulation_configs")
+}
+
+// ============================================
+// Review Delegation Marketplace Models
+// ============================================
+
+model ReviewListing {
+  id               String   @id @default(cuid())
+  repositoryId     String
+  repository       Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  workflowId       String
+  
+  prNumber         Int
+  title            String
+  author           String
+  
+  status           String   @default("available")
+  estimatedMinutes Int
+  points           Int
+  bonusPoints      Int
+  
+  requiredSkills   String[] @default([])
+  difficulty       String   @default("medium")
+  priority         String   @default("normal")
+  
+  filesChanged     Int
+  linesChanged     Int
+  
+  claimDeadline    DateTime
+  claimedBy        String?
+  claimedAt        DateTime?
+  
+  tags             String[] @default([])
+  
+  claims           ReviewClaim[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@index([repositoryId])
+  @@index([status])
+  @@index([priority])
+  @@map("review_listings")
+}
+
+model ReviewClaim {
+  id             String   @id @default(cuid())
+  listingId      String
+  listing        ReviewListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  
+  reviewerLogin  String
+  status         String   @default("claimed")
+  
+  claimedAt      DateTime @default(now())
+  deadline       DateTime
+  startedAt      DateTime?
+  completedAt    DateTime?
+  
+  pointsEarned   Int      @default(0)
+  bonusEarned    Int      @default(0)
+  
+  qualityScore   Float?
+  feedback       String?
+  
+  createdAt      DateTime @default(now())
+  
+  @@index([listingId])
+  @@index([reviewerLogin])
+  @@index([status])
+  @@map("review_claims")
+}
+
+model ReviewerProfile {
+  id                   String   @id @default(cuid())
+  login                String   @unique
+  name                 String?
+  avatarUrl            String?
+  
+  totalPoints          Int      @default(0)
+  level                Int      @default(1)
+  currentStreak        Int      @default(0)
+  longestStreak        Int      @default(0)
+  
+  totalReviews         Int      @default(0)
+  weeklyReviews        Int      @default(0)
+  monthlyReviews       Int      @default(0)
+  
+  avgReviewTime        Float    @default(0)
+  avgQualityScore      Float    @default(0)
+  
+  availability         String   @default("available")
+  maxConcurrentReviews Int      @default(2)
+  
+  badges               ReviewerBadge[]
+  skills               ReviewerSkill[]
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@map("reviewer_profiles")
+}
+
+model ReviewerBadge {
+  id         String   @id @default(cuid())
+  profileId  String
+  profile    ReviewerProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  type       String
+  earnedAt   DateTime @default(now())
+  
+  @@unique([profileId, type])
+  @@index([profileId])
+  @@map("reviewer_badges")
+}
+
+model ReviewerSkill {
+  id          String   @id @default(cuid())
+  profileId   String
+  profile     ReviewerProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  category    String
+  proficiency Int      @default(0)
+  reviewCount Int      @default(0)
+  lastUsedAt  DateTime?
+  
+  @@unique([profileId, category])
+  @@index([profileId])
+  @@map("reviewer_skills")
+}
+
+// ============================================
+// Conflict Prevention Models
+// ============================================
+
+model ConflictScan {
+  id             String   @id @default(cuid())
+  owner          String
+  repo           String
+  
+  prsAnalyzed    Int
+  conflictsFound Int
+  hotspotsFound  Int
+  
+  conflicts      Json     // PredictedConflict[]
+  mergeOrder     Json     // MergeOrderRecommendation
+  hotspots       Json     // FileHotspot[]
+  
+  scannedAt      DateTime
+  nextScanAt     DateTime
+  
+  createdAt      DateTime @default(now())
+  
+  @@index([owner, repo])
+  @@index([scannedAt])
+  @@map("conflict_scans")
+}
+
+model ConflictPreventionConfig {
+  id                    String   @id @default(cuid())
+  repositoryId          String   @unique
+  
+  autoScanEnabled       Boolean  @default(true)
+  scanIntervalMinutes   Int      @default(60)
+  minConfidence         Float    @default(0.5)
+  minSeverityToNotify   String   @default("medium")
+  
+  autoCommentEnabled    Boolean  @default(true)
+  slackWebhook          String?
+  
+  highRiskFiles         String[] @default([])
+  ignoreFiles           String[] @default([])
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("conflict_prevention_configs")
+}
+
+// ============================================
+// Deployment Runbook Models
+// ============================================
+
+model DeploymentRunbook {
+  id               String   @id @default(cuid())
+  owner            String
+  repo             String
+  prNumber         Int
+  prTitle          String
+  
+  environment      String
+  riskLevel        String
+  estimatedMinutes Int
+  
+  runbook          Json     // Full DeploymentRunbook object
+  
+  generatedAt      DateTime
+  createdAt        DateTime @default(now())
+  
+  @@index([owner, repo, prNumber])
+  @@index([environment])
+  @@map("deployment_runbooks")
+}
+
+model RunbookTemplate {
+  id               String   @id @default(cuid())
+  repositoryId     String?
+  
+  name             String
+  description      String
+  environment      String
+  
+  defaultSteps     Json     @default("[]")
+  defaultChecklist Json     @default("[]")
+  requiredApprovers String[] @default([])
+  
+  active           Boolean  @default(true)
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@index([repositoryId])
+  @@index([environment])
+  @@map("runbook_templates")
+}
+
+// ============================================
+// Review Replay Learning Models
+// ============================================
+
+model ReviewRecording {
+  id           String   @id @default(cuid())
+  owner        String
+  repo         String
+  prNumber     Int
+  prTitle      String
+  
+  reviewer     String
+  status       String   @default("recording")
+  
+  categories   String[] @default([])
+  difficulty   String   @default("intermediate")
+  isPublic     Boolean  @default(false)
+  featured     Boolean  @default(false)
+  
+  metadata     Json     @default("{}")
+  events       Json     @default("[]")
+  annotations  Json     @default("[]")
+  
+  qualityScore Int      @default(0)
+  viewCount    Int      @default(0)
+  
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+  
+  @@index([owner, repo])
+  @@index([status])
+  @@index([isPublic, featured])
+  @@map("review_recordings")
+}
+
+model ReplayProgress {
+  id           String   @id @default(cuid())
+  userLogin    String
+  recordingId  String
+  
+  currentTime  Int      @default(0)
+  completed    Boolean  @default(false)
+  notes        String[] @default([])
+  quizAnswers  Json     @default("{}")
+  
+  lastAccessedAt DateTime @default(now())
+  createdAt      DateTime @default(now())
+  
+  @@unique([userLogin, recordingId])
+  @@index([userLogin])
+  @@map("replay_progress")
+}
+
+model ReviewLearningPath {
+  id                   String   @id @default(cuid())
+  title                String
+  description          String
+  audience             String
+  prerequisites        String[] @default([])
+  
+  recordings           Json     @default("[]")
+  totalDurationMinutes Int      @default(0)
+  difficulty           String   @default("beginner")
+  topics               String[] @default([])
+  
+  createdBy            String
+  published            Boolean  @default(false)
+  enrollmentCount      Int      @default(0)
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@index([published])
+  @@index([difficulty])
+  @@map("review_learning_paths")
+}
+
+model PathEnrollment {
+  id        String   @id @default(cuid())
+  userLogin String
+  pathId    String
+  
+  progress  Json     @default("{}")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([userLogin, pathId])
+  @@index([userLogin])
+  @@map("path_enrollments")
+}
+
+// ============================================
+// Voice Review Session Models
+// ============================================
+
+model VoiceSession {
+  id             String   @id @default(cuid())
+  user           String
+  owner          String
+  repo           String
+  prNumber       Int
+  
+  state          String   @default("idle")
+  currentFile    String?
+  currentLine    Int?
+  
+  commandHistory Json     @default("[]")
+  pendingComments Json    @default("[]")
+  
+  startedAt      DateTime @default(now())
+  lastActivityAt DateTime @default(now())
+  endedAt        DateTime?
+  
+  createdAt      DateTime @default(now())
+  
+  @@index([user])
+  @@index([owner, repo, prNumber])
+  @@map("voice_sessions")
+}
+
+// ============================================
+// AI Pair Review Session Models
+// ============================================
+
+model PairReviewSession {
+  id             String   @id @default(cuid())
+  owner          String
+  repo           String
+  prNumber       Int
+  prTitle        String
+  
+  humanReviewer  String
+  personaId      String
+  
+  state          String   @default("initializing")
+  
+  conversation   Json     @default("[]")
+  findings       Json     @default("[]")
+  progress       Json     @default("{}")
+  settings       Json     @default("{}")
+  summary        Json?
+  
+  startedAt      DateTime @default(now())
+  lastActivityAt DateTime @default(now())
+  completedAt    DateTime?
+  
+  createdAt      DateTime @default(now())
+  
+  @@index([owner, repo, prNumber])
+  @@index([humanReviewer])
+  @@index([state])
+  @@map("pair_review_sessions")
 }
