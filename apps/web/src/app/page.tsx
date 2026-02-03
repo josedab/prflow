@@ -1,121 +1,232 @@
-import { GitPullRequest, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
+'use client';
+
+import {
+  GitPullRequest,
+  Clock,
+  Bug,
+  TestTube,
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { StatsCard } from '@/components/dashboard/stats-card';
+import { ActivityFeed } from '@/components/dashboard/activity-feed';
+import { QuickActions } from '@/components/dashboard/quick-actions';
+import {
+  ChartContainer,
+  SimpleLineChart,
+  SimpleBarChart,
+  SimpleAreaChart,
+} from '@/components/dashboard/charts';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Mock data for charts
+const prAnalyzedData = [
+  { name: 'Mon', value: 12 },
+  { name: 'Tue', value: 19 },
+  { name: 'Wed', value: 15 },
+  { name: 'Thu', value: 22 },
+  { name: 'Fri', value: 18 },
+  { name: 'Sat', value: 8 },
+  { name: 'Sun', value: 5 },
+];
+
+const issuesBySeverityData = [
+  { name: 'Critical', value: 3 },
+  { name: 'High', value: 12 },
+  { name: 'Medium', value: 28 },
+  { name: 'Low', value: 45 },
+];
+
+const timeSavedData = [
+  { name: 'Week 1', value: 12 },
+  { name: 'Week 2', value: 18 },
+  { name: 'Week 3', value: 24 },
+  { name: 'Week 4', value: 32 },
+];
+
+const mockActivities = [
+  {
+    id: '1',
+    type: 'pr_analyzed' as const,
+    title: 'feat: Add user authentication',
+    repository: 'acme/web-app',
+    prNumber: 142,
+    timestamp: new Date(Date.now() - 1000 * 60 * 5),
+    status: 'success' as const,
+  },
+  {
+    id: '2',
+    type: 'issue_found' as const,
+    title: 'fix: Memory leak in component',
+    repository: 'acme/web-app',
+    prNumber: 141,
+    timestamp: new Date(Date.now() - 1000 * 60 * 30),
+    status: 'warning' as const,
+  },
+  {
+    id: '3',
+    type: 'test_generated' as const,
+    title: 'refactor: Optimize database queries',
+    repository: 'acme/api',
+    prNumber: 89,
+    timestamp: new Date(Date.now() - 1000 * 60 * 60),
+    status: 'success' as const,
+  },
+  {
+    id: '4',
+    type: 'pr_approved' as const,
+    title: 'docs: Update API documentation',
+    repository: 'acme/docs',
+    prNumber: 34,
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
+    status: 'success' as const,
+  },
+  {
+    id: '5',
+    type: 'pr_merged' as const,
+    title: 'chore: Bump dependencies',
+    repository: 'acme/web-app',
+    prNumber: 140,
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3),
+  },
+];
+
+async function fetchDashboardStats() {
+  // In production, this would call the API
+  // Simulating API delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return {
+    prsAnalyzed: 247,
+    prsAnalyzedTrend: 12,
+    issuesFound: 89,
+    issuesFoundTrend: -5,
+    testsGenerated: 156,
+    testsGeneratedTrend: 23,
+    timeSaved: '48h',
+    timeSavedTrend: 15,
+  };
+}
 
 export default function Home() {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: fetchDashboardStats,
+  });
+
   return (
-    <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="text-center py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Welcome to PRFlow
-        </h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Intelligent pull request automation that analyzes, reviews, and enhances your PRs automatically.
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Overview of your PR automation activity
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard
-          icon={<GitPullRequest className="h-8 w-8 text-blue-500" />}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {isLoading ? (
+          <>
+            {[...Array(4)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <Skeleton className="h-20 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </>
+        ) : (
+          <>
+            <StatsCard
+              title="PRs Analyzed"
+              value={stats?.prsAnalyzed ?? 0}
+              description="Total this month"
+              icon={GitPullRequest}
+              trend={
+                stats?.prsAnalyzedTrend
+                  ? { value: stats.prsAnalyzedTrend, isPositive: true }
+                  : undefined
+              }
+            />
+            <StatsCard
+              title="Issues Found"
+              value={stats?.issuesFound ?? 0}
+              description="Bugs & issues detected"
+              icon={Bug}
+              trend={
+                stats?.issuesFoundTrend
+                  ? {
+                      value: Math.abs(stats.issuesFoundTrend),
+                      isPositive: stats.issuesFoundTrend < 0,
+                    }
+                  : undefined
+              }
+            />
+            <StatsCard
+              title="Tests Generated"
+              value={stats?.testsGenerated ?? 0}
+              description="Automated tests created"
+              icon={TestTube}
+              trend={
+                stats?.testsGeneratedTrend
+                  ? { value: stats.testsGeneratedTrend, isPositive: true }
+                  : undefined
+              }
+            />
+            <StatsCard
+              title="Time Saved"
+              value={stats?.timeSaved ?? '0h'}
+              description="Review time saved"
+              icon={Clock}
+              trend={
+                stats?.timeSavedTrend
+                  ? { value: stats.timeSavedTrend, isPositive: true }
+                  : undefined
+              }
+            />
+          </>
+        )}
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <ChartContainer
           title="PRs Analyzed"
-          value="0"
-          description="Total pull requests processed"
-        />
-        <StatCard
-          icon={<CheckCircle className="h-8 w-8 text-green-500" />}
-          title="Issues Found"
-          value="0"
-          description="Bugs and issues detected"
-        />
-        <StatCard
-          icon={<AlertTriangle className="h-8 w-8 text-yellow-500" />}
-          title="Tests Generated"
-          value="0"
-          description="Automated tests created"
-        />
-        <StatCard
-          icon={<Clock className="h-8 w-8 text-purple-500" />}
+          description="Pull requests analyzed per day"
+        >
+          <SimpleLineChart data={prAnalyzedData} dataKey="value" />
+        </ChartContainer>
+
+        <ChartContainer
+          title="Issues by Severity"
+          description="Distribution of detected issues"
+        >
+          <SimpleBarChart
+            data={issuesBySeverityData}
+            dataKey="value"
+            fill="hsl(var(--chart-1))"
+          />
+        </ChartContainer>
+
+        <ChartContainer
           title="Time Saved"
-          value="0h"
-          description="Review time saved"
-        />
-      </div>
-
-      {/* Quick Start */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-semibold mb-4">Get Started</h2>
-        <div className="space-y-4">
-          <Step
-            number={1}
-            title="Install the GitHub App"
-            description="Grant PRFlow access to your repositories"
+          description="Hours saved per week"
+        >
+          <SimpleAreaChart
+            data={timeSavedData}
+            dataKey="value"
+            stroke="hsl(var(--chart-2))"
+            fill="hsl(var(--chart-2) / 0.2)"
           />
-          <Step
-            number={2}
-            title="Configure Settings"
-            description="Customize which features to enable per repository"
-          />
-          <Step
-            number={3}
-            title="Open a Pull Request"
-            description="PRFlow will automatically analyze and review your PR"
-          />
-        </div>
+        </ChartContainer>
       </div>
 
-      {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-semibold mb-4">Recent Activity</h2>
-        <div className="text-gray-500 text-center py-8">
-          No recent activity. Install PRFlow on a repository to get started.
+      {/* Activity & Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ActivityFeed activities={mockActivities} />
         </div>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({
-  icon,
-  title,
-  value,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  value: string;
-  description: string;
-}) {
-  return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center space-x-4">
-        {icon}
-        <div>
-          <p className="text-sm text-gray-500">{title}</p>
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-xs text-gray-400">{description}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Step({
-  number,
-  title,
-  description,
-}: {
-  number: number;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex items-start space-x-4">
-      <div className="flex-shrink-0 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-semibold">
-        {number}
-      </div>
-      <div>
-        <h3 className="font-semibold">{title}</h3>
-        <p className="text-gray-600">{description}</p>
+        <QuickActions />
       </div>
     </div>
   );

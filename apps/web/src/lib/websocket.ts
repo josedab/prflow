@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { logger } from './logger';
 
-interface WebSocketMessage {
+export interface WebSocketMessage {
   type: string;
   workflowId?: string;
   data?: unknown;
