@@ -372,9 +372,9 @@ export interface DocUpdateResult {
 // ============================================
 
 /**
- * Risk assessment for a pull request
+ * Risk assessment for a pull request (general synthesis)
  */
-export interface RiskAssessment {
+export interface PRRiskAssessment {
   /** Overall risk level */
   level: RiskLevel;
   /** Factors contributing to the risk */
@@ -430,7 +430,7 @@ export interface PRSynthesis {
   /** Human-readable summary of the PR */
   summary: string;
   /** Risk assessment */
-  riskAssessment: RiskAssessment;
+  riskAssessment: PRRiskAssessment;
   /** Summary of all findings */
   findingsSummary: FindingsSummary;
   /** Checklist for human reviewers */
@@ -688,3 +688,53 @@ export * from './code-intent.js';
 // Review Debt Dashboard (Next-Gen Feature 5)
 // ============================================
 export * from './review-debt.js';
+
+// ============================================
+// Semantic Versioning Bot (Next-Gen Feature)
+// ============================================
+export * from './semver.js';
+
+// ============================================
+// PR Time Machine (Next-Gen Feature)
+// ============================================
+export * from './time-machine.js';
+
+// ============================================
+// Impact Simulator (Next-Gen Feature)
+// ============================================
+export * from './impact-simulator.js';
+
+// ============================================
+// Review Delegation Marketplace (Next-Gen Feature)
+// ============================================
+export * from './marketplace.js';
+
+// ============================================
+// Smart Conflict Prevention (Next-Gen Feature)
+// ============================================
+export * from './conflict-prevention.js';
+
+// ============================================
+// Git Provider Abstraction (Next-Gen Feature)
+// ============================================
+export * from './git-provider.js';
+
+// ============================================
+// Runbook Generator (Next-Gen Feature)
+// ============================================
+export * from './runbook.js';
+
+// ============================================
+// Review Replay Learning (Next-Gen Feature)
+// ============================================
+export * from './review-replay.js';
+
+// ============================================
+// Voice-Activated Review (Next-Gen Feature)
+// ============================================
+export * from './voice-review.js';
+
+// ============================================
+// AI Pair Review Sessions (Next-Gen Feature)
+// ============================================
+export * from './pair-review.js';
