@@ -39,6 +39,13 @@ import { interactiveTrainingRoutes } from './interactive-training.js';
 import { migrationRoutes } from './migration.js';
 import { intentRoutes } from './intent.js';
 import { debtDashboardRoutes } from './debt-dashboard.js';
+import { semverRoutes } from './semver.js';
+import { timeMachineRoutes } from './time-machine.js';
+import { impactSimulatorRoutes } from './impact-simulator.js';
+import { marketplaceRoutes } from './marketplace.js';
+import { conflictPreventionRoutes } from './conflict-prevention.js';
+import { runbookRoutes } from './runbook.js';
+import { voiceReviewRoutes } from './voice-review.js';
 
 export async function setupRoutes(app: FastifyInstance) {
   await app.register(healthRoutes, { prefix: '/api' });
@@ -79,6 +86,13 @@ export async function setupRoutes(app: FastifyInstance) {
   await app.register(migrationRoutes, { prefix: '/api' });
   await app.register(intentRoutes, { prefix: '/api' });
   await app.register(debtDashboardRoutes, { prefix: '/api' });
+  await app.register(semverRoutes, { prefix: '/api/semver' });
+  await app.register(timeMachineRoutes, { prefix: '/api/time-machine' });
+  await app.register(impactSimulatorRoutes, { prefix: '/api/impact' });
+  await app.register(marketplaceRoutes, { prefix: '/api/marketplace' });
+  await app.register(conflictPreventionRoutes, { prefix: '/api/conflicts' });
+  await app.register(runbookRoutes, { prefix: '/api/runbooks' });
+  await app.register(voiceReviewRoutes, { prefix: '/api/voice' });
   registerBatchRoutes(app);
   registerOpenAPI(app);
 }

@@ -15,3 +15,6 @@ export { MultiRepoOrchestrationAgent, multiRepoOrchestrationAgent } from './mult
 export { ReviewPersonasAgent, reviewPersonasAgent } from './review-personas.js';
 export { NLQueryAgent, nlQueryAgent } from './nl-query.js';
 export { LearningPathsAgent, learningPathsAgent } from './learning-paths.js';
+export { SemverAgent } from './semver.js';
+export { ImpactSimulatorAgent, impactSimulatorAgent } from './impact-simulator.js';
+export { RunbookGeneratorAgent } from './runbook.js';

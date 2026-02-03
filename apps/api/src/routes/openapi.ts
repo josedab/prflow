@@ -69,6 +69,13 @@ const openAPISpec = {
     { name: 'Query', description: 'Natural language PR queries' },
     { name: 'ML Training', description: 'Machine learning model training' },
     { name: 'Training', description: 'Interactive review training' },
+    { name: 'Semver', description: 'Semantic versioning analysis and release management' },
+    { name: 'Time Machine', description: 'PR timeline tracking and snapshot comparison' },
+    { name: 'Impact Simulator', description: 'Codebase impact prediction and analysis' },
+    { name: 'Marketplace', description: 'Review delegation marketplace with gamification' },
+    { name: 'Conflict Prevention', description: 'Smart conflict detection between PRs' },
+    { name: 'Runbook', description: 'Automated deployment runbook generation' },
+    { name: 'Voice Review', description: 'Voice-activated code review commands' },
   ],
   paths: {
     '/api/health': {
@@ -686,6 +693,375 @@ const openAPISpec = {
         },
       },
     },
+    // Semver Routes
+    '/api/semver/{owner}/{repo}/analyze': {
+      get: {
+        tags: ['Semver'],
+        summary: 'Analyze version bump',
+        description: 'Analyzes PRs to recommend semantic version bump',
+        parameters: [
+          { name: 'owner', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'repo', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'branch', in: 'query', schema: { type: 'string' } },
+          { name: 'sinceTag', in: 'query', schema: { type: 'string' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Version bump analysis',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/VersionBumpAnalysis' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/semver/{owner}/{repo}/release-notes': {
+      post: {
+        tags: ['Semver'],
+        summary: 'Generate release notes',
+        description: 'Generates formatted release notes from version analysis',
+        parameters: [
+          { name: 'owner', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'repo', in: 'path', required: true, schema: { type: 'string' } },
+        ],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  version: { type: 'string' },
+                  analysis: { $ref: '#/components/schemas/VersionBumpAnalysis' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Generated release notes',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ReleaseNotes' },
+              },
+            },
+          },
+        },
+      },
+    },
+    // Time Machine Routes
+    '/api/time-machine/{owner}/{repo}/{prNumber}/timeline': {
+      get: {
+        tags: ['Time Machine'],
+        summary: 'Get PR timeline',
+        description: 'Returns the complete timeline of events and snapshots for a PR',
+        parameters: [
+          { name: 'owner', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'repo', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'prNumber', in: 'path', required: true, schema: { type: 'integer' } },
+        ],
+        responses: {
+          '200': {
+            description: 'PR timeline',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/PRTimeline' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/time-machine/{owner}/{repo}/{prNumber}/snapshot': {
+      post: {
+        tags: ['Time Machine'],
+        summary: 'Capture snapshot',
+        description: 'Manually captures a snapshot of the current PR state',
+        parameters: [
+          { name: 'owner', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'repo', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'prNumber', in: 'path', required: true, schema: { type: 'integer' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Captured snapshot',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/PRSnapshot' },
+              },
+            },
+          },
+        },
+      },
+    },
+    // Impact Simulator Routes
+    '/api/impact/{owner}/{repo}/{prNumber}/simulate': {
+      post: {
+        tags: ['Impact Simulator'],
+        summary: 'Run impact simulation',
+        description: 'Simulates the impact of merging a PR on the codebase',
+        parameters: [
+          { name: 'owner', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'repo', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'prNumber', in: 'path', required: true, schema: { type: 'integer' } },
+        ],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  includeTestPredictions: { type: 'boolean' },
+                  includeCrossRepo: { type: 'boolean' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Impact simulation results',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ImpactSimulation' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/impact/{owner}/{repo}/{prNumber}/latest': {
+      get: {
+        tags: ['Impact Simulator'],
+        summary: 'Get latest simulation',
+        description: 'Returns the most recent impact simulation for a PR',
+        parameters: [
+          { name: 'owner', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'repo', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'prNumber', in: 'path', required: true, schema: { type: 'integer' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Latest simulation',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ImpactSimulation' },
+              },
+            },
+          },
+          '404': { description: 'No simulation found' },
+        },
+      },
+    },
+    // Marketplace Routes
+    '/api/marketplace/listings': {
+      get: {
+        tags: ['Marketplace'],
+        summary: 'Get available listings',
+        description: 'Returns PR review listings available for claiming',
+        parameters: [
+          { name: 'skills', in: 'query', schema: { type: 'string' }, description: 'Comma-separated skill filters' },
+          { name: 'difficulty', in: 'query', schema: { type: 'string', enum: ['easy', 'medium', 'hard', 'expert'] } },
+          { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } },
+        ],
+        responses: {
+          '200': {
+            description: 'Available listings',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    listings: { type: 'array', items: { $ref: '#/components/schemas/ReviewListing' } },
+                    total: { type: 'integer' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/marketplace/listings/{listingId}/claim': {
+      post: {
+        tags: ['Marketplace'],
+        summary: 'Claim a listing',
+        description: 'Claims a PR review listing for the requesting reviewer',
+        parameters: [
+          { name: 'listingId', in: 'path', required: true, schema: { type: 'string' } },
+        ],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['reviewerLogin'],
+                properties: {
+                  reviewerLogin: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Claim successful',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ReviewClaim' },
+              },
+            },
+          },
+          '400': { description: 'Listing unavailable' },
+        },
+      },
+    },
+    '/api/marketplace/reviewers/{login}': {
+      get: {
+        tags: ['Marketplace'],
+        summary: 'Get reviewer profile',
+        description: 'Returns the gamification profile for a reviewer',
+        parameters: [
+          { name: 'login', in: 'path', required: true, schema: { type: 'string' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Reviewer profile',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ReviewerProfile' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/marketplace/leaderboard': {
+      get: {
+        tags: ['Marketplace'],
+        summary: 'Get leaderboard',
+        description: 'Returns the reviewer leaderboard',
+        parameters: [
+          { name: 'period', in: 'query', schema: { type: 'string', enum: ['daily', 'weekly', 'monthly', 'all_time'] } },
+        ],
+        responses: {
+          '200': {
+            description: 'Leaderboard',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/MarketplaceLeaderboard' },
+              },
+            },
+          },
+        },
+      },
+    },
+    // Conflict Prevention Routes
+    '/api/conflicts/scan/{owner}/{repo}': {
+      post: {
+        tags: ['Conflict Prevention'],
+        summary: 'Scan for conflicts',
+        description: 'Scans repository for potential merge conflicts between open PRs',
+        parameters: [
+          { name: 'owner', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'repo', in: 'path', required: true, schema: { type: 'string' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Conflict scan results',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ConflictScan' },
+              },
+            },
+          },
+        },
+      },
+      get: {
+        tags: ['Conflict Prevention'],
+        summary: 'Get latest scan',
+        description: 'Returns the most recent conflict scan for a repository',
+        parameters: [
+          { name: 'owner', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'repo', in: 'path', required: true, schema: { type: 'string' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Latest scan',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ConflictScan' },
+              },
+            },
+          },
+          '404': { description: 'No scan found' },
+        },
+      },
+    },
+    // Runbook Routes
+    '/api/runbook/{owner}/{repo}/{prNumber}/generate': {
+      post: {
+        tags: ['Runbook'],
+        summary: 'Generate runbook',
+        description: 'Generates a deployment runbook based on PR changes',
+        parameters: [
+          { name: 'owner', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'repo', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'prNumber', in: 'path', required: true, schema: { type: 'integer' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Generated runbook',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Runbook' },
+              },
+            },
+          },
+        },
+      },
+    },
+    // Voice Review Routes
+    '/api/voice/command': {
+      post: {
+        tags: ['Voice Review'],
+        summary: 'Process voice command',
+        description: 'Processes a voice command for code review actions',
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['transcript'],
+                properties: {
+                  transcript: { type: 'string' },
+                  context: {
+                    type: 'object',
+                    properties: {
+                      owner: { type: 'string' },
+                      repo: { type: 'string' },
+                      prNumber: { type: 'integer' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Command result',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/VoiceCommandResult' },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -1102,6 +1478,239 @@ const openAPISpec = {
           score: { type: 'integer' },
           scenariosCompleted: { type: 'integer' },
           badges: { type: 'array', items: { type: 'string' } },
+        },
+      },
+      // New Feature Schemas
+      VersionBumpAnalysis: {
+        type: 'object',
+        properties: {
+          recommendedBump: { type: 'string', enum: ['major', 'minor', 'patch', 'none'] },
+          currentVersion: { type: 'string', nullable: true },
+          suggestedVersion: { type: 'string', nullable: true },
+          confidence: { type: 'number', minimum: 0, maximum: 1 },
+          factors: { type: 'array', items: { $ref: '#/components/schemas/VersionBumpFactor' } },
+          changes: { type: 'array', items: { $ref: '#/components/schemas/ChangelogEntry' } },
+        },
+      },
+      VersionBumpFactor: {
+        type: 'object',
+        properties: {
+          type: { type: 'string' },
+          description: { type: 'string' },
+          impact: { type: 'string', enum: ['major', 'minor', 'patch'] },
+          source: { type: 'string' },
+        },
+      },
+      ChangelogEntry: {
+        type: 'object',
+        properties: {
+          category: { type: 'string', enum: ['breaking', 'feature', 'fix', 'performance', 'refactor', 'documentation', 'test', 'chore', 'security', 'deprecation'] },
+          description: { type: 'string' },
+          prNumber: { type: 'integer' },
+          author: { type: 'string' },
+          affectedFiles: { type: 'array', items: { type: 'string' } },
+          isBreaking: { type: 'boolean' },
+        },
+      },
+      ReleaseNotes: {
+        type: 'object',
+        properties: {
+          version: { type: 'string' },
+          title: { type: 'string' },
+          date: { type: 'string' },
+          sections: { type: 'array', items: { type: 'object' } },
+          markdown: { type: 'string' },
+          contributors: { type: 'array', items: { type: 'string' } },
+          pullRequests: { type: 'array', items: { type: 'integer' } },
+        },
+      },
+      PRTimeline: {
+        type: 'object',
+        properties: {
+          workflowId: { type: 'string' },
+          repository: { type: 'object' },
+          prNumber: { type: 'integer' },
+          title: { type: 'string' },
+          author: { type: 'string' },
+          createdAt: { type: 'string', format: 'date-time' },
+          currentStatus: { type: 'string' },
+          snapshots: { type: 'array', items: { $ref: '#/components/schemas/PRSnapshot' } },
+          events: { type: 'array', items: { $ref: '#/components/schemas/TimelineEvent' } },
+          milestones: { type: 'array', items: { type: 'object' } },
+          stats: { type: 'object' },
+        },
+      },
+      PRSnapshot: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          workflowId: { type: 'string' },
+          commitSha: { type: 'string' },
+          headBranch: { type: 'string' },
+          baseBranch: { type: 'string' },
+          title: { type: 'string' },
+          files: { type: 'array', items: { type: 'object' } },
+          linesAdded: { type: 'integer' },
+          linesRemoved: { type: 'integer' },
+          capturedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      TimelineEvent: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          workflowId: { type: 'string' },
+          type: { type: 'string' },
+          actor: { type: 'string' },
+          timestamp: { type: 'string', format: 'date-time' },
+          metadata: { type: 'object' },
+          isSignificant: { type: 'boolean' },
+        },
+      },
+      ImpactSimulation: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          prNumber: { type: 'integer' },
+          commitSha: { type: 'string' },
+          simulatedAt: { type: 'string', format: 'date-time' },
+          impacts: { type: 'array', items: { $ref: '#/components/schemas/PredictedImpact' } },
+          testPredictions: { type: 'array', items: { type: 'object' } },
+          apiCompatibility: { type: 'array', items: { type: 'object' } },
+          dependencyGraph: { type: 'object' },
+          summary: { $ref: '#/components/schemas/ImpactSummary' },
+        },
+      },
+      PredictedImpact: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          type: { type: 'string' },
+          severity: { type: 'string', enum: ['critical', 'high', 'medium', 'low'] },
+          confidence: { type: 'number' },
+          description: { type: 'string' },
+          file: { type: 'string' },
+          suggestedAction: { type: 'string' },
+        },
+      },
+      ImpactSummary: {
+        type: 'object',
+        properties: {
+          totalImpacts: { type: 'integer' },
+          criticalCount: { type: 'integer' },
+          highCount: { type: 'integer' },
+          mediumCount: { type: 'integer' },
+          lowCount: { type: 'integer' },
+          riskLevel: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
+          recommendedActions: { type: 'array', items: { type: 'string' } },
+        },
+      },
+      ReviewListing: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          repository: { type: 'object' },
+          prNumber: { type: 'integer' },
+          title: { type: 'string' },
+          author: { type: 'string' },
+          status: { type: 'string' },
+          estimatedMinutes: { type: 'integer' },
+          points: { type: 'integer' },
+          bonusPoints: { type: 'integer' },
+          requiredSkills: { type: 'array', items: { type: 'string' } },
+          difficulty: { type: 'string', enum: ['easy', 'medium', 'hard', 'expert'] },
+          priority: { type: 'string', enum: ['low', 'normal', 'high', 'urgent'] },
+          createdAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      ReviewClaim: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          listingId: { type: 'string' },
+          reviewerLogin: { type: 'string' },
+          status: { type: 'string' },
+          claimedAt: { type: 'string', format: 'date-time' },
+          deadline: { type: 'string', format: 'date-time' },
+          pointsEarned: { type: 'integer' },
+          bonusEarned: { type: 'integer' },
+        },
+      },
+      ReviewerProfile: {
+        type: 'object',
+        properties: {
+          login: { type: 'string' },
+          name: { type: 'string' },
+          totalPoints: { type: 'integer' },
+          level: { type: 'integer' },
+          pointsToNextLevel: { type: 'integer' },
+          currentStreak: { type: 'integer' },
+          longestStreak: { type: 'integer' },
+          totalReviews: { type: 'integer' },
+          avgReviewTime: { type: 'number' },
+          avgQualityScore: { type: 'number' },
+          badges: { type: 'array', items: { type: 'object' } },
+          skills: { type: 'array', items: { type: 'object' } },
+          availability: { type: 'string' },
+        },
+      },
+      MarketplaceLeaderboard: {
+        type: 'object',
+        properties: {
+          period: { type: 'string', enum: ['daily', 'weekly', 'monthly', 'all_time'] },
+          entries: { type: 'array', items: { type: 'object' } },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      ConflictScan: {
+        type: 'object',
+        properties: {
+          repository: { type: 'object' },
+          scannedAt: { type: 'string', format: 'date-time' },
+          prsAnalyzed: { type: 'integer' },
+          conflicts: { type: 'array', items: { $ref: '#/components/schemas/PredictedConflict' } },
+          hotspots: { type: 'array', items: { type: 'object' } },
+          mergeOrder: { type: 'object' },
+        },
+      },
+      PredictedConflict: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          type: { type: 'string' },
+          severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
+          probability: { type: 'number' },
+          pr1: { type: 'object' },
+          pr2: { type: 'object' },
+          conflictingFiles: { type: 'array', items: { type: 'string' } },
+          suggestedResolution: { type: 'object' },
+          detectedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      Runbook: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          prNumber: { type: 'integer' },
+          title: { type: 'string' },
+          summary: { type: 'string' },
+          generatedAt: { type: 'string', format: 'date-time' },
+          steps: { type: 'array', items: { type: 'object' } },
+          rollbackPlan: { type: 'object' },
+          monitoring: { type: 'object' },
+          estimatedDuration: { type: 'integer' },
+          riskAssessment: { type: 'object' },
+        },
+      },
+      VoiceCommandResult: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean' },
+          command: { type: 'string' },
+          action: { type: 'string' },
+          parameters: { type: 'object' },
+          response: { type: 'string' },
+          executedActions: { type: 'array', items: { type: 'string' } },
         },
       },
     },

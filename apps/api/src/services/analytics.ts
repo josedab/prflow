@@ -1,28 +1,103 @@
+/**
+ * @fileoverview Analytics Service for PRFlow.
+ *
+ * Provides comprehensive analytics and metrics tracking for PR workflows:
+ *
+ * - **Team Metrics**: Aggregate statistics across repositories
+ *   - Time to first review
+ *   - Review cycle counts
+ *   - PR throughput
+ *   - Issue categorization
+ *
+ * - **PR Metrics**: Individual workflow statistics
+ *   - Analysis latency
+ *   - Issues found by severity
+ *   - Generated tests/docs count
+ *
+ * - **Trends**: Time-series data for tracking progress
+ *   - PR volume over time
+ *   - Issue counts over time
+ *   - Test generation rates
+ *
+ * - **Export**: Data export in JSON or CSV format
+ *
+ * @module services/analytics
+ */
+
 import { db } from '@prflow/db';
 
+/**
+ * Aggregate metrics for a team or set of repositories.
+ */
 export interface TeamMetrics {
+  /** Average time (seconds) from PR creation to first PRFlow analysis */
   timeToFirstReview: number;
+  /** Average number of review cycles per PR */
   averageReviewCycles: number;
+  /** Total PRs processed in the period */
   prThroughput: number;
+  /** Issue counts grouped by category (security, bug, etc.) */
   issuesFoundByCategory: Record<string, number>;
+  /** Estimated test coverage improvement percentage */
   testCoverageImprovement: number;
+  /** Top reviewers by review count */
   topReviewers: Array<{ login: string; count: number }>;
 }
 
+/**
+ * Metrics for a single PR workflow.
+ */
 export interface PRMetrics {
+  /** Time spent in analysis phase (milliseconds) */
   analysisLatencyMs: number;
+  /** Total number of issues detected */
   issuesFound: number;
+  /** Issues grouped by severity level */
   issuesBySeverity: Record<string, number>;
+  /** Number of test files generated */
   testsGenerated: number;
+  /** Number of documentation files updated */
   docsUpdated: number;
+  /** Rate at which reviewers accepted suggestions */
   reviewerAcceptanceRate: number;
 }
 
+/**
+ * Single data point for trend analysis.
+ */
 export interface TrendData {
+  /** Date string (format depends on interval) */
   date: string;
+  /** Metric value for this date */
   value: number;
 }
 
+/**
+ * Analytics Service - Metrics and reporting for PRFlow.
+ *
+ * Provides methods for tracking events, calculating metrics,
+ * generating trends, and exporting data.
+ *
+ * @example
+ * ```typescript
+ * // Get team metrics for last 30 days
+ * const metrics = await analyticsService.getTeamMetrics(
+ *   ['repo-id-1', 'repo-id-2'],
+ *   new Date('2024-01-01'),
+ *   new Date('2024-01-31')
+ * );
+ * console.log(`Processed ${metrics.prThroughput} PRs`);
+ *
+ * // Get trends
+ * const trends = await analyticsService.getTrends(
+ *   ['repo-id'],
+ *   'issues',
+ *   startDate,
+ *   endDate,
+ *   'week'
+ * );
+ * ```
+ */
 export class AnalyticsService {
   async trackEvent(
     repositoryId: string,

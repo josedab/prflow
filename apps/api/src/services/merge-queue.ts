@@ -1,9 +1,46 @@
+/**
+ * @fileoverview Merge Queue Service for PRFlow.
+ *
+ * Implements an intelligent merge queue that orchestrates PR merging:
+ *
+ * **Features:**
+ * - Priority-based queue ordering
+ * - CI status checks before merge
+ * - Merge conflict detection and handling
+ * - Auto-rebase capabilities
+ * - Batch merging support
+ * - Real-time status updates via WebSocket
+ *
+ * **Queue States:**
+ * - `queued`: PR is waiting in queue
+ * - `checking`: Running pre-merge checks
+ * - `ready`: All checks passed, ready to merge
+ * - `merging`: Currently being merged
+ * - `merged`: Successfully merged
+ * - `blocked`: Blocked by failing checks or reviews
+ * - `conflicted`: Has merge conflicts
+ * - `failed`: Merge attempt failed
+ *
+ * **Configuration Options:**
+ * - Required approvals count
+ * - CI check requirements
+ * - Up-to-date branch requirement
+ * - Conflict detection/resolution
+ * - Merge method (merge, squash, rebase)
+ * - Batch size for parallel merging
+ *
+ * @module services/merge-queue
+ */
+
 import type { GitHubClient } from '@prflow/github-client';
 import { db } from '@prflow/db';
 import { getRedisClient } from '../lib/redis.js';
 import { logger } from '../lib/logger.js';
 import { notifyWorkflowUpdate } from '../lib/websocket.js';
 
+/**
+ * Represents a PR in the merge queue.
+ */
 export interface MergeQueueItem {
   id: string;
   repositoryId: string;

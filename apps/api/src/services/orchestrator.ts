@@ -1,14 +1,35 @@
+/**
+ * @fileoverview Workflow Orchestrator Service for PRFlow.
+ *
+ * The Orchestrator is the central coordinator for PR processing. It manages
+ * the complete workflow lifecycle:
+ *
+ * 1. **Initialization**: Fetches PR data, creates GitHub check run
+ * 2. **Analysis Phase**: Runs Analyzer Agent to classify PR and detect changes
+ * 3. **Parallel Phase**: Runs Reviewer, Test Generator, and Doc agents concurrently
+ * 4. **Synthesis Phase**: Consolidates all results into summary
+ * 5. **Publication**: Posts comments and updates check run on GitHub
+ *
+ * The orchestrator handles:
+ * - Agent coordination and sequencing
+ * - Error handling and workflow failure recovery
+ * - Status tracking and persistence
+ * - GitHub API interaction
+ *
+ * @module services/orchestrator
+ */
+
 import { loadConfigSafe } from '@prflow/config';
 import { db } from '@prflow/db';
-import type { 
-  PRWorkflowResult, 
-  ReviewResult, 
-  TestGenerationResult, 
+import type {
+  PRWorkflowResult,
+  ReviewResult,
+  TestGenerationResult,
   DocUpdateResult,
   AgentContext,
   PullRequest,
   PRDiff,
-  PRAnalysis 
+  PRAnalysis
 } from '@prflow/core';
 import type { PRWorkflowJobData } from '../lib/queue.js';
 import { logger } from '../lib/logger.js';
