@@ -1,8 +1,59 @@
+/**
+ * @fileoverview Test Generator Agent for PRFlow.
+ *
+ * The Test Generator Agent automatically creates unit tests for code changes.
+ * It analyzes the PR diff to identify new and modified functions, then generates
+ * appropriate tests based on the detected testing framework.
+ *
+ * Supported frameworks:
+ * - Jest (JavaScript/TypeScript)
+ * - Vitest (JavaScript/TypeScript)
+ * - Mocha/Chai (JavaScript/TypeScript)
+ * - Pytest (Python)
+ * - Go test (Go)
+ *
+ * Generation approaches:
+ * 1. LLM-based generation for comprehensive, context-aware tests
+ * 2. Template-based generation as fallback
+ *
+ * Generated tests include:
+ * - Happy path tests
+ * - Edge case tests
+ * - Error handling tests
+ * - Boundary condition tests
+ *
+ * @module agents/test-generator
+ */
+
 import type { TestAgentInput, AgentContext, TestGenerationResult, GeneratedTest, TestFramework, SemanticChange } from '@prflow/core';
 import { BaseAgent, callLLM, buildSystemPrompt, type LLMMessage } from './base.js';
 import { getFileExtension, getLanguageFromExtension } from '@prflow/core';
 import { logger } from '../lib/logger.js';
 
+/**
+ * Test Generator Agent - Automated test creation for PR changes.
+ *
+ * Analyzes pull request changes to automatically generate unit tests for
+ * new and modified code. The agent detects the testing framework in use
+ * and generates appropriate test code.
+ *
+ * @example
+ * ```typescript
+ * const testGen = new TestGeneratorAgent();
+ * const result = await testGen.execute({
+ *   diff: { files: [...], totalAdditions: 100 },
+ *   analysis: { semanticChanges: [{ type: 'new_function', name: 'foo', ... }] },
+ *   testPatterns: [{ framework: 'vitest' }]
+ * }, context);
+ *
+ * if (result.success) {
+ *   result.data.tests.forEach(test => {
+ *     console.log(`Generated ${test.testFile} for ${test.targetFile}`);
+ *     console.log(test.testCode);
+ *   });
+ * }
+ * ```
+ */
 export class TestGeneratorAgent extends BaseAgent<TestAgentInput, TestGenerationResult> {
   readonly name = 'test';
   readonly description = 'Generates unit tests for new and modified code';

@@ -1,21 +1,54 @@
+/**
+ * @fileoverview Reviewer Agent for PRFlow.
+ *
+ * The Reviewer Agent performs automated code review by detecting:
+ * - Security vulnerabilities (SQL injection, XSS, hardcoded secrets)
+ * - Bugs and logic errors (null checks, off-by-one, type issues)
+ * - Performance problems (N+1 queries, inefficient loops)
+ * - Error handling issues (empty catch blocks, unhandled promises)
+ * - Style and maintainability concerns
+ *
+ * Detection uses a two-phase approach:
+ * 1. Pattern-based detection using regex rules (fast, deterministic)
+ * 2. LLM-based detection for context-aware analysis (optional)
+ *
+ * Results are deduplicated and merged, with confidence scores assigned
+ * based on category and severity.
+ *
+ * @module agents/reviewer
+ */
+
 import type { ReviewerAgentInput, AgentContext, ReviewResult, ReviewComment, Severity, ReviewCategory } from '@prflow/core';
 import { BaseAgent, callLLM, buildSystemPrompt, type LLMMessage } from './base.js';
 import { getFileExtension, getLanguageFromExtension } from '@prflow/core';
 import { logger } from '../lib/logger.js';
 import { parseLLMJsonOrDefault } from '../lib/llm-parser.js';
 
-// Constants for LLM configuration
+/**
+ * LLM configuration for consistent, deterministic analysis.
+ * @internal
+ */
 const LLM_CONFIG = {
-  TEMPERATURE: 0.3, // Lower temperature for more consistent analysis
+  /** Lower temperature for more consistent analysis */
+  TEMPERATURE: 0.3,
+  /** Maximum tokens for review response */
   MAX_TOKENS: 2000,
 } as const;
 
-// Issue deduplication configuration
+/**
+ * Configuration for deduplicating detected issues.
+ * @internal
+ */
 const DEDUPLICATION_CONFIG = {
-  LINE_PROXIMITY_THRESHOLD: 2, // Issues within 2 lines are considered duplicates
+  /** Issues within this many lines are considered duplicates */
+  LINE_PROXIMITY_THRESHOLD: 2,
 } as const;
 
-// Confidence scoring weights
+/**
+ * Base confidence scores by category.
+ * Security issues have highest confidence, style lowest.
+ * @internal
+ */
 const CATEGORY_CONFIDENCE: Record<ReviewCategory, number> = {
   security: 0.9,
   bug: 0.75,
@@ -27,6 +60,11 @@ const CATEGORY_CONFIDENCE: Record<ReviewCategory, number> = {
   maintainability: 0.6,
 };
 
+/**
+ * Confidence adjustments based on issue severity.
+ * Critical issues get a confidence boost, nitpicks get reduced confidence.
+ * @internal
+ */
 const SEVERITY_CONFIDENCE_ADJUSTMENT: Record<Severity, number> = {
   critical: 0.1,
   high: 0.05,
@@ -35,20 +73,35 @@ const SEVERITY_CONFIDENCE_ADJUSTMENT: Record<Severity, number> = {
   nitpick: -0.1,
 };
 
-// Resource URLs for learning more
+/**
+ * URLs for additional reading on issue categories.
+ * Included in review comments to help developers learn.
+ * @internal
+ */
 const LEARN_MORE_URLS: Partial<Record<ReviewCategory, string>> = {
   security: 'https://owasp.org/www-project-top-ten/',
   performance: 'https://web.dev/performance/',
   error_handling: 'https://www.joyent.com/node-js/production/design/errors',
 };
 
+/**
+ * Internal representation of a detected code issue.
+ * @internal
+ */
 interface DetectedIssue {
+  /** File path where the issue was found */
   file: string;
+  /** Line number of the issue (1-indexed) */
   line: number;
+  /** End line if the issue spans multiple lines */
   endLine?: number;
+  /** Severity level of the issue */
   severity: Severity;
+  /** Category/type of the issue */
   category: ReviewCategory;
+  /** Human-readable description of the issue */
   message: string;
+  /** Optional code suggestion to fix the issue */
   suggestion?: {
     originalCode: string;
     suggestedCode: string;
@@ -56,6 +109,10 @@ interface DetectedIssue {
   };
 }
 
+/**
+ * Structure of issues returned by LLM analysis.
+ * @internal
+ */
 interface LLMReviewIssue {
   line: number;
   endLine?: number;
@@ -65,6 +122,31 @@ interface LLMReviewIssue {
   suggestedFix?: string;
 }
 
+/**
+ * Reviewer Agent - Automated code review for pull requests.
+ *
+ * Performs comprehensive code analysis to identify:
+ * - **Security**: SQL injection, XSS, hardcoded secrets, disabled TLS
+ * - **Bugs**: Type mismatches, null dereferences, off-by-one errors
+ * - **Performance**: N+1 queries, sync operations, inefficient loops
+ * - **Error Handling**: Empty catch blocks, unhandled promises
+ *
+ * @example
+ * ```typescript
+ * const reviewer = new ReviewerAgent();
+ * const result = await reviewer.execute({
+ *   pr: { title: 'Add login', number: 123 },
+ *   diff: { files: [{ filename: 'auth.ts', patch: '...' }], ... }
+ * }, context);
+ *
+ * if (result.success) {
+ *   console.log(`Found ${result.data.comments.length} issues`);
+ *   result.data.comments.forEach(c => {
+ *     console.log(`[${c.severity}] ${c.file}:${c.line} - ${c.message}`);
+ *   });
+ * }
+ * ```
+ */
 export class ReviewerAgent extends BaseAgent<ReviewerAgentInput, ReviewResult> {
   readonly name = 'reviewer';
   readonly description = 'Reviews code changes for bugs, security issues, and best practices';

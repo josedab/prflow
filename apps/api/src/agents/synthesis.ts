@@ -1,7 +1,59 @@
+/**
+ * @fileoverview Synthesis Agent for PRFlow.
+ *
+ * The Synthesis Agent is the final stage of the PR processing pipeline.
+ * It consolidates outputs from all previous agents into a unified,
+ * human-readable summary that includes:
+ *
+ * - Executive summary of the PR
+ * - Risk assessment with mitigation recommendations
+ * - Findings summary by severity and category
+ * - Human review checklist (items needing manual verification)
+ * - Inventory of generated assets (tests, docs)
+ * - Suggested reviewers
+ * - Overall confidence score
+ *
+ * The output is designed to help human reviewers quickly understand
+ * the PR and focus on areas that need their attention.
+ *
+ * @module agents/synthesis
+ */
+
 import type { SynthesisAgentInput, AgentContext, PRSynthesis, RiskLevel, Severity, ReviewCategory, ChecklistItem } from '@prflow/core';
 import { BaseAgent, callLLM, buildSystemPrompt, type LLMMessage } from './base.js';
 import { logger } from '../lib/logger.js';
 
+/**
+ * Synthesis Agent - Final consolidation of PR analysis.
+ *
+ * Takes outputs from the Analyzer, Reviewer, Test Generator, and Documentation
+ * agents and produces a unified summary for human reviewers.
+ *
+ * The synthesis includes:
+ * - **Summary**: 2-4 sentence overview of the PR
+ * - **Risk Assessment**: Level, factors, and mitigations
+ * - **Findings Summary**: Issue counts by severity/category
+ * - **Checklist**: Items requiring human verification
+ * - **Generated Assets**: Tests and docs created
+ *
+ * @example
+ * ```typescript
+ * const synthesis = new SynthesisAgent();
+ * const result = await synthesis.execute({
+ *   pr: { title: 'Add auth', body: '...' },
+ *   analysis: { type: 'feature', riskLevel: 'medium', ... },
+ *   review: { comments: [...], summary: { critical: 0, ... } },
+ *   tests: { tests: [...] },
+ *   docs: { updates: [...] }
+ * }, context);
+ *
+ * if (result.success) {
+ *   console.log('Summary:', result.data.summary);
+ *   console.log('Risk Level:', result.data.riskAssessment.level);
+ *   console.log('Checklist:', result.data.humanReviewChecklist);
+ * }
+ * ```
+ */
 export class SynthesisAgent extends BaseAgent<SynthesisAgentInput, PRSynthesis> {
   readonly name = 'synthesis';
   readonly description = 'Synthesizes analysis results into a human-readable summary';

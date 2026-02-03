@@ -1,12 +1,38 @@
+/**
+ * @fileoverview Analyzer Agent for PRFlow.
+ *
+ * The Analyzer Agent is the first agent in the PR processing pipeline.
+ * It performs initial analysis of pull request changes including:
+ * - PR type classification (feature, bugfix, refactor, etc.)
+ * - Semantic change detection (new functions, modified APIs, etc.)
+ * - Risk assessment based on change patterns
+ * - Impact radius calculation
+ * - Reviewer suggestions
+ *
+ * The agent uses a hybrid approach:
+ * 1. Fast pattern-based detection for common patterns
+ * 2. LLM-enhanced analysis for nuanced understanding (optional)
+ *
+ * @module agents/analyzer
+ */
+
 import type { AnalyzerAgentInput, AgentContext, PRAnalysis, SemanticChange, SemanticChangeType } from '@prflow/core';
 import { BaseAgent, callLLM, buildSystemPrompt, type LLMMessage } from './base.js';
 import { logger } from '../lib/logger.js';
 import { parseLLMJsonOrThrow } from '../lib/llm-parser.js';
 
+/**
+ * Structure of the LLM's analysis response.
+ * @internal
+ */
 interface LLMAnalysisResult {
+  /** Classified type of the pull request */
   prType: 'feature' | 'bugfix' | 'refactor' | 'docs' | 'chore' | 'test' | 'deps';
+  /** Overall risk level of the changes */
   riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  /** List of identified risks or concerns */
   risks: string[];
+  /** Detected semantic changes in the code */
   semanticChanges: Array<{
     type: string;
     name: string;
@@ -14,9 +40,33 @@ interface LLMAnalysisResult {
     impact: 'low' | 'medium' | 'high';
     description?: string;
   }>;
+  /** Brief summary of the PR */
   summary: string;
 }
 
+/**
+ * Analyzer Agent - First stage of PR processing pipeline.
+ *
+ * Analyzes pull request changes to produce structured metadata about:
+ * - What type of change this is (feature, bug fix, etc.)
+ * - What code elements changed (functions, APIs, classes)
+ * - How risky the changes are
+ * - Who should review the changes
+ *
+ * @example
+ * ```typescript
+ * const analyzer = new AnalyzerAgent();
+ * const result = await analyzer.execute({
+ *   pr: { number: 123, title: 'Add user auth', ... },
+ *   diff: { files: [...], totalAdditions: 100, totalDeletions: 20 }
+ * }, context);
+ *
+ * if (result.success) {
+ *   console.log(`PR Type: ${result.data.type}`);
+ *   console.log(`Risk Level: ${result.data.riskLevel}`);
+ * }
+ * ```
+ */
 export class AnalyzerAgent extends BaseAgent<AnalyzerAgentInput, PRAnalysis> {
   readonly name = 'analyzer';
   readonly description = 'Analyzes PR changes to identify semantic changes, impact, and risks';
