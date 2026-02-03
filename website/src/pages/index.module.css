@@ -1,0 +1,125 @@
+/**
+ * CSS files with the .module.css suffix will be treated as CSS modules
+ * and scoped locally.
+ */
+
+.heroBanner {
+  padding: 6rem 0 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.heroDescription {
+  font-size: 1.25rem;
+  max-width: 700px;
+  margin: 1rem auto 2rem;
+  opacity: 0.9;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 3rem 1rem;
+  }
+  .heroDescription {
+    font-size: 1.1rem;
+  }
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.buttons .button--outline {
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+
+.buttons .button--outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+}
+
+.installCommand {
+  margin-top: 2rem;
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 1.1rem;
+}
+
+.installCommand code {
+  color: #fff;
+  background: transparent;
+}
+
+/* Used By Section */
+.usedBy {
+  padding: 3rem 0;
+  background: var(--ifm-background-surface-color);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.badges {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: var(--ifm-color-primary-lightest);
+  color: var(--ifm-color-primary-darkest);
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+[data-theme='dark'] .badge {
+  background: var(--ifm-color-primary-darkest);
+  color: var(--ifm-color-primary-lightest);
+}
+
+/* Quick Demo Section */
+.quickDemo {
+  padding: 4rem 0;
+}
+
+.quickDemo h2 {
+  margin-bottom: 1rem;
+}
+
+.quickDemo p {
+  font-size: 1.1rem;
+  color: var(--ifm-color-emphasis-700);
+  margin-bottom: 1.5rem;
+}
+
+.benefitsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.benefitsList li {
+  padding: 0.5rem 0;
+  font-size: 1.05rem;
+}
+
+@media screen and (max-width: 996px) {
+  .quickDemo .row {
+    flex-direction: column-reverse;
+  }
+  .quickDemo .col {
+    margin-bottom: 2rem;
+  }
+}
