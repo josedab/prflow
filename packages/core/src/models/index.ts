@@ -753,3 +753,8 @@ export * from './requirements-validation.js';
 // Developer Gamification (Killer Feature 3)
 // ============================================
 export * from './gamification.js';
+
+// ============================================
+// Shift-Left Pre-Commit Analysis (Killer Feature 6)
+// ============================================
+export * from './shift-left.js';
