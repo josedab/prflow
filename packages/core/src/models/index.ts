@@ -748,3 +748,8 @@ export * from './conversational-copilot.js';
 // Requirements Validation (Killer Feature 2)
 // ============================================
 export * from './requirements-validation.js';
+
+// ============================================
+// Developer Gamification (Killer Feature 3)
+// ============================================
+export * from './gamification.js';
