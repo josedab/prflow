@@ -743,3 +743,8 @@ export * from './pair-review.js';
 // Conversational PR Copilot (Killer Feature 1)
 // ============================================
 export * from './conversational-copilot.js';
+
+// ============================================
+// Requirements Validation (Killer Feature 2)
+// ============================================
+export * from './requirements-validation.js';
