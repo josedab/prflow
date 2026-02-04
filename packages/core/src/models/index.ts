@@ -738,3 +738,8 @@ export * from './voice-review.js';
 // AI Pair Review Sessions (Next-Gen Feature)
 // ============================================
 export * from './pair-review.js';
+
+// ============================================
+// Conversational PR Copilot (Killer Feature 1)
+// ============================================
+export * from './conversational-copilot.js';
