@@ -763,3 +763,8 @@ export * from './shift-left.js';
 // Live Collaboration Sessions (Killer Feature 8)
 // ============================================
 export * from './live-collaboration.js';
+
+// ============================================
+// Business Impact Scoring (Killer Feature 9)
+// ============================================
+export * from './business-impact.js';
