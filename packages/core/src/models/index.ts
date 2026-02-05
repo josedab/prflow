@@ -768,3 +768,8 @@ export * from './live-collaboration.js';
 // Business Impact Scoring (Killer Feature 9)
 // ============================================
 export * from './business-impact.js';
+
+// ============================================
+// Zero-Trust Security Review (Killer Feature 10)
+// ============================================
+export * from './zero-trust-security.js';
