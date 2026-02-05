@@ -758,3 +758,8 @@ export * from './gamification.js';
 // Shift-Left Pre-Commit Analysis (Killer Feature 6)
 // ============================================
 export * from './shift-left.js';
+
+// ============================================
+// Live Collaboration Sessions (Killer Feature 8)
+// ============================================
+export * from './live-collaboration.js';
