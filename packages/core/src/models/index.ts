@@ -773,3 +773,53 @@ export * from './business-impact.js';
 // Zero-Trust Security Review (Killer Feature 10)
 // ============================================
 export * from './zero-trust-security.js';
+
+// ============================================
+// AI Pair Programming Mode (Next-Gen Feature 1)
+// ============================================
+export * from './ai-pair-programming.js';
+
+// ============================================
+// Predictive PR Health Score (Next-Gen Feature 2)
+// ============================================
+export * from './predictive-pr-health.js';
+
+// ============================================
+// Cross-Repository Impact Analysis (Next-Gen Feature 3)
+// ============================================
+export * from './cross-repo-impact.js';
+
+// ============================================
+// Natural Language PR Creation (Next-Gen Feature 4)
+// ============================================
+export * from './nl-pr-creation.js';
+
+// ============================================
+// Enhanced Review Debt Dashboard (Next-Gen Feature 5)
+// ============================================
+export * from './enhanced-review-debt.js';
+
+// ============================================
+// AI-Powered Conflict Prevention (Next-Gen Feature 6)
+// ============================================
+export * from './ai-conflict-prevention.js';
+
+// ============================================
+// Regulatory Compliance Engine (Next-Gen Feature 7)
+// ============================================
+export * from './regulatory-compliance.js';
+
+// ============================================
+// Developer Skill Profiler (Next-Gen Feature 8)
+// ============================================
+export * from './developer-skill-profiler.js';
+
+// ============================================
+// Self-Healing CI Integration (Next-Gen Feature 9)
+// ============================================
+export * from './self-healing-ci.js';
+
+// ============================================
+// Voice-Activated Review Interface (Next-Gen Feature 10)
+// ============================================
+export * from './voice-review-interface.js';

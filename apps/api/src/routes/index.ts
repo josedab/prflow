@@ -47,6 +47,18 @@ import { conflictPreventionRoutes } from './conflict-prevention.js';
 import { runbookRoutes } from './runbook.js';
 import { voiceReviewRoutes } from './voice-review.js';
 
+// Next-Gen Features (Round 2)
+import { aiPairProgrammingRoutes } from './ai-pair-programming.js';
+import { enhancedPredictiveHealthRoutes } from './enhanced-predictive-health.js';
+import { crossRepoImpactRoutes } from './cross-repo-impact.js';
+import { nlPRCreationRoutes } from './nl-pr-creation.js';
+import { enhancedReviewDebtRoutes } from './enhanced-review-debt.js';
+import { aiConflictPreventionRoutes } from './ai-conflict-prevention.js';
+import { regulatoryComplianceRoutes } from './regulatory-compliance.js';
+import { developerSkillProfilerRoutes } from './developer-skill-profiler.js';
+import { selfHealingCIRoutes } from './self-healing-ci.js';
+import { voiceReviewInterfaceRoutes } from './voice-review-interface.js';
+
 export async function setupRoutes(app: FastifyInstance) {
   await app.register(healthRoutes, { prefix: '/api' });
   await app.register(authRoutes, { prefix: '/api/auth' });
@@ -93,6 +105,19 @@ export async function setupRoutes(app: FastifyInstance) {
   await app.register(conflictPreventionRoutes, { prefix: '/api/conflicts' });
   await app.register(runbookRoutes, { prefix: '/api/runbooks' });
   await app.register(voiceReviewRoutes, { prefix: '/api/voice' });
+
+  // Next-Gen Features (Round 2)
+  await app.register(aiPairProgrammingRoutes);
+  await app.register(enhancedPredictiveHealthRoutes);
+  await app.register(crossRepoImpactRoutes);
+  await app.register(nlPRCreationRoutes);
+  await app.register(enhancedReviewDebtRoutes);
+  await app.register(aiConflictPreventionRoutes);
+  await app.register(regulatoryComplianceRoutes);
+  await app.register(developerSkillProfilerRoutes);
+  await app.register(selfHealingCIRoutes);
+  await app.register(voiceReviewInterfaceRoutes);
+
   registerBatchRoutes(app);
   registerOpenAPI(app);
 }
