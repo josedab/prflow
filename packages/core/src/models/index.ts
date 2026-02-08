@@ -823,3 +823,53 @@ export * from './self-healing-ci.js';
 // Voice-Activated Review Interface (Next-Gen Feature 10)
 // ============================================
 export * from './voice-review-interface.js';
+
+// ============================================
+// Intelligent PR Auto-Splitting (Next-Gen Round 3)
+// ============================================
+export * from './intelligent-splitting.js';
+
+// ============================================
+// Real-Time Collaborative Review Canvas (Next-Gen Round 3)
+// ============================================
+export * from './collaborative-canvas.js';
+
+// ============================================
+// Codebase-Aware Custom Rules Engine (Next-Gen Round 3)
+// ============================================
+export * from './custom-rules-engine.js';
+
+// ============================================
+// Predictive Review Routing (Next-Gen Round 3)
+// ============================================
+export * from './predictive-routing.js';
+
+// ============================================
+// Zero-Config Onboarding (Next-Gen Round 3)
+// ============================================
+export * from './zero-config-onboarding.js';
+
+// ============================================
+// Cross-Repository Impact Graph (Next-Gen Round 3)
+// ============================================
+export * from './cross-repo-graph.js';
+
+// ============================================
+// Review Quality Calibration (Next-Gen Round 3)
+// ============================================
+export * from './review-calibration.js';
+
+// ============================================
+// AI PR Description Generator (Next-Gen Round 3)
+// ============================================
+export * from './pr-description-generator.js';
+
+// ============================================
+// Security Threat Model (Next-Gen Round 3)
+// ============================================
+export * from './security-threat-model.js';
+
+// ============================================
+// Developer Growth Dashboard (Next-Gen Round 3)
+// ============================================
+export * from './developer-growth.js';
