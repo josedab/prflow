@@ -59,6 +59,18 @@ import { developerSkillProfilerRoutes } from './developer-skill-profiler.js';
 import { selfHealingCIRoutes } from './self-healing-ci.js';
 import { voiceReviewInterfaceRoutes } from './voice-review-interface.js';
 
+// Next-Gen Features (Round 3)
+import { intelligentSplittingRoutes } from './intelligent-splitting.js';
+import { collaborativeCanvasRoutes } from './collaborative-canvas.js';
+import { customRulesRoutes } from './custom-rules.js';
+import { predictiveRoutingRoutes } from './predictive-routing.js';
+import { zeroConfigOnboardingRoutes } from './zero-config-onboarding.js';
+import { crossRepoGraphRoutes } from './cross-repo-graph.js';
+import { reviewCalibrationRoutes } from './review-calibration.js';
+import { prDescriptionRoutes } from './pr-description.js';
+import { securityThreatModelRoutes } from './security-threat-model.js';
+import { developerGrowthRoutes } from './developer-growth.js';
+
 export async function setupRoutes(app: FastifyInstance) {
   await app.register(healthRoutes, { prefix: '/api' });
   await app.register(authRoutes, { prefix: '/api/auth' });
@@ -117,6 +129,18 @@ export async function setupRoutes(app: FastifyInstance) {
   await app.register(developerSkillProfilerRoutes);
   await app.register(selfHealingCIRoutes);
   await app.register(voiceReviewInterfaceRoutes);
+
+  // Next-Gen Features (Round 3)
+  await app.register(intelligentSplittingRoutes, { prefix: '/api/auto-split' });
+  await app.register(collaborativeCanvasRoutes, { prefix: '/api/canvas' });
+  await app.register(customRulesRoutes, { prefix: '/api/custom-rules' });
+  await app.register(predictiveRoutingRoutes, { prefix: '/api/routing' });
+  await app.register(zeroConfigOnboardingRoutes, { prefix: '/api/onboarding' });
+  await app.register(crossRepoGraphRoutes, { prefix: '/api/cross-repo-graph' });
+  await app.register(reviewCalibrationRoutes, { prefix: '/api/calibration' });
+  await app.register(prDescriptionRoutes, { prefix: '/api/description' });
+  await app.register(securityThreatModelRoutes, { prefix: '/api/threat-model' });
+  await app.register(developerGrowthRoutes, { prefix: '/api/growth' });
 
   registerBatchRoutes(app);
   registerOpenAPI(app);
