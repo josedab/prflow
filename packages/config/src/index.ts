@@ -11,12 +11,12 @@ const envSchema = z.object({
   // Redis
   REDIS_URL: z.string().url(),
 
-  // GitHub App
-  GITHUB_APP_ID: z.string().min(1),
-  GITHUB_APP_PRIVATE_KEY: z.string().min(1),
-  GITHUB_WEBHOOK_SECRET: z.string().min(1),
-  GITHUB_CLIENT_ID: z.string().min(1),
-  GITHUB_CLIENT_SECRET: z.string().min(1),
+  // GitHub App (optional — app starts without them, webhook processing disabled)
+  GITHUB_APP_ID: z.string().min(1).optional(),
+  GITHUB_APP_PRIVATE_KEY: z.string().min(1).optional(),
+  GITHUB_WEBHOOK_SECRET: z.string().min(1).optional(),
+  GITHUB_CLIENT_ID: z.string().min(1).optional(),
+  GITHUB_CLIENT_SECRET: z.string().min(1).optional(),
 
   // Copilot SDK
   COPILOT_API_KEY: z.string().optional(),
@@ -27,13 +27,44 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+const fieldHelp: Record<string, string> = {
+  DATABASE_URL: 'PostgreSQL connection string. Start Postgres: docker compose -f docker/docker-compose.yml up -d',
+  REDIS_URL: 'Redis connection string. Start Redis: docker compose -f docker/docker-compose.yml up -d',
+  SESSION_SECRET: 'Must be ≥ 32 characters. Generate one: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"',
+  GITHUB_APP_ID: 'Your GitHub App ID. Create one at https://github.com/settings/apps (optional for local dev)',
+  GITHUB_APP_PRIVATE_KEY: 'GitHub App private key (PEM format). See README.md#github-app-setup',
+  GITHUB_WEBHOOK_SECRET: 'GitHub webhook secret. See README.md#github-app-setup',
+  GITHUB_CLIENT_ID: 'GitHub App OAuth client ID. See README.md#github-app-setup',
+  GITHUB_CLIENT_SECRET: 'GitHub App OAuth client secret. See README.md#github-app-setup',
+};
+
+function formatConfigErrors(error: z.ZodError): string {
+  const lines = ['\n╔══════════════════════════════════════════════════╗',
+                  '║     PRFlow — Environment Configuration Error     ║',
+                  '╚══════════════════════════════════════════════════╝\n'];
+
+  for (const issue of error.issues) {
+    const field = issue.path.join('.');
+    const help = fieldHelp[field];
+    lines.push(`  ✗ ${field}: ${issue.message}`);
+    if (help) {
+      lines.push(`    → ${help}`);
+    }
+    lines.push('');
+  }
+
+  lines.push('  Tip: Copy the example config and edit as needed:');
+  lines.push('    cp .env.example .env\n');
+
+  return lines.join('\n');
+}
+
 export function loadConfig(): Env {
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
-    console.error('Invalid environment variables:');
-    console.error(result.error.format());
-    throw new Error('Invalid environment configuration');
+    console.error(formatConfigErrors(result.error));
+    throw new Error('Invalid environment configuration — see details above');
   }
 
   return result.data;
@@ -41,6 +72,10 @@ export function loadConfig(): Env {
 
 export function loadConfigSafe(): Partial<Env> {
   return envSchema.partial().parse(process.env);
+}
+
+export function isGitHubConfigured(env: Partial<Env>): boolean {
+  return !!(env.GITHUB_APP_ID && env.GITHUB_APP_PRIVATE_KEY && env.GITHUB_WEBHOOK_SECRET);
 }
 
 export const config = {
