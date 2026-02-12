@@ -1,7 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
-import { loadConfigSafe } from '@prflow/config';
+import { loadConfigSafe, isGitHubConfigured } from '@prflow/config';
 import { setupRoutes } from './routes/index.js';
 import { setupWebhooks } from './routes/webhooks.js';
 import { createQueueWorker } from './jobs/worker.js';
@@ -11,6 +11,7 @@ import { setupWebSocket } from './lib/websocket.js';
 import { setupErrorHandler } from './lib/error-handler.js';
 
 const config = loadConfigSafe();
+const githubEnabled = isGitHubConfigured(config);
 
 const app: FastifyInstance = Fastify({
   logger: false,
@@ -34,13 +35,20 @@ async function start() {
 
     // Routes
     await setupRoutes(app);
-    await setupWebhooks(app);
+
+    // GitHub webhook routes (only if credentials are configured)
+    if (githubEnabled) {
+      await setupWebhooks(app);
+    } else {
+      logger.warn('⚠ GitHub App credentials not configured — webhook processing disabled');
+      logger.warn('  Set GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, and GITHUB_WEBHOOK_SECRET in .env to enable');
+    }
 
     // WebSocket support for real-time updates
     await setupWebSocket(app);
 
-    // Start queue worker
-    if (process.env.GITHUB_APP_ID) {
+    // Start queue worker (only if GitHub is configured)
+    if (githubEnabled) {
       const worker = createQueueWorker();
       worker.on('completed', (job) => {
         logger.info({ jobId: job.id }, 'Job completed');
@@ -55,6 +63,9 @@ async function start() {
     await app.listen({ port, host: '0.0.0.0' });
     logger.info(`Server running on port ${port}`);
     logger.info(`WebSocket available at ws://localhost:${port}/ws`);
+    if (!githubEnabled) {
+      logger.info('Running in local exploration mode (no GitHub integration)');
+    }
   } catch (err) {
     logger.error(err);
     process.exit(1);
