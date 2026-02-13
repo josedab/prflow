@@ -1,0 +1,14 @@
+diff --git a/src/auth.ts b/src/auth.ts
+index 1a2b3c4..5d6e7f8 100644
+--- a/src/auth.ts
++++ b/src/auth.ts
+@@ -10,6 +10,15 @@ import { db } from "./db";
++export async function login(req: Request) {
++  const { email, password } = req.body;
++  const user = await db.query(`SELECT * FROM users WHERE email = '${email}'`);
++  if (user && password === user.password) {
++    const token = jwt.sign({ id: user.id }, "hardcoded-secret");
++    return { token };
++  }
++  throw new Error("fail");
++}

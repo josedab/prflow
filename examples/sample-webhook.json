@@ -1,0 +1,44 @@
+{
+  "action": "opened",
+  "number": 42,
+  "pull_request": {
+    "number": 42,
+    "title": "feat: add user authentication with OAuth2",
+    "url": "https://api.github.com/repos/acme-corp/web-app/pulls/42",
+    "html_url": "https://github.com/acme-corp/web-app/pull/42",
+    "state": "open",
+    "head": {
+      "ref": "feature/oauth2-auth",
+      "sha": "abc123def456"
+    },
+    "base": {
+      "ref": "main",
+      "sha": "789ghi012jkl"
+    },
+    "user": {
+      "login": "alice-dev",
+      "id": 200001
+    },
+    "body": "Adds OAuth2 authentication flow with Google and GitHub providers.\n\n## Changes\n- New OAuth2 handler\n- Auth middleware for protected routes\n- Session management with httpOnly cookies",
+    "additions": 450,
+    "deletions": 30,
+    "changed_files": 12
+  },
+  "repository": {
+    "id": 300001,
+    "name": "web-app",
+    "full_name": "acme-corp/web-app",
+    "owner": {
+      "login": "acme-corp",
+      "id": 100001
+    },
+    "private": false
+  },
+  "installation": {
+    "id": 50001
+  },
+  "sender": {
+    "login": "alice-dev",
+    "id": 200001
+  }
+}
