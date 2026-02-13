@@ -70,6 +70,7 @@ import { reviewCalibrationRoutes } from './review-calibration.js';
 import { prDescriptionRoutes } from './pr-description.js';
 import { securityThreatModelRoutes } from './security-threat-model.js';
 import { developerGrowthRoutes } from './developer-growth.js';
+import { playgroundRoutes } from './playground.js';
 
 export async function setupRoutes(app: FastifyInstance) {
   await app.register(healthRoutes, { prefix: '/api' });
@@ -144,4 +145,7 @@ export async function setupRoutes(app: FastifyInstance) {
 
   registerBatchRoutes(app);
   registerOpenAPI(app);
+
+  // Playground (dev-only — provides sample analysis without GitHub integration)
+  await app.register(playgroundRoutes, { prefix: '/api/playground' });
 }
