@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/josedab/prflow/actions/workflows/ci.yml/badge.svg)](https://github.com/josedab/prflow/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/josedab/prflow?quickstart=1)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-9.0+-orange)](https://pnpm.io/)
@@ -39,9 +40,22 @@ PRFlow transforms code review from a bottleneck into a streamlined workflow. It 
 
 - **Node.js** 20+ (use `nvm install` — reads `.nvmrc` automatically)
 - **pnpm** 9+ (`corepack enable` to activate)
-- **Docker** (for PostgreSQL and Redis)
+- **Docker** (for PostgreSQL and Redis — *not needed for lite mode*)
 
-### One-Command Setup
+### Zero-Config Quick Try (No Docker)
+
+Just want to explore the API? No Docker, no database, no `.env`:
+
+```bash
+git clone https://github.com/josedab/prflow.git
+cd prflow
+pnpm install
+pnpm dev:lite
+```
+
+This starts the API at http://localhost:3001 with in-memory mocks. Jump to [Try It](#-try-it--30-seconds) below.
+
+### Full Setup (One Command)
 
 ```bash
 # Clone the repository
@@ -51,15 +65,36 @@ cd prflow
 # Run the bootstrap script (installs deps, starts Docker, initializes DB)
 pnpm bootstrap
 
-# Start development servers (API on :3001, Dashboard on :3000)
-pnpm dev
+# Start the API server (API on :3001)
+pnpm dev:api
 ```
 
 > **No GitHub App needed to start!** The app runs in local exploration mode by default.
 > Configure GitHub integration later by editing `.env` — see [GitHub App Setup](#github-app-setup).
 
-`pnpm dev` starts the API at http://localhost:3001 and the Dashboard at http://localhost:3000 in parallel.
 The API is ready when you see `Server running on port 3001` in the output.
+
+Want the Dashboard too? Run `pnpm dev` instead — it starts both the API (:3001) and the Next.js Dashboard (:3000).
+
+### 🎯 Try It — 30 Seconds
+
+Once the API is running, try the built-in playground. No config needed:
+
+```bash
+# 1. Verify the API is up
+curl http://localhost:3001/api/health
+# → {"status":"ok","timestamp":"..."}
+
+# 2. Analyze a sample diff with intentional security issues
+curl -s -X POST http://localhost:3001/api/playground/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"diff": "diff --git a/src/auth.ts b/src/auth.ts\n--- a/src/auth.ts\n+++ b/src/auth.ts\n@@ -1,3 +1,8 @@\n+export async function login(req) {\n+  const user = await db.query(\"SELECT * FROM users WHERE email = \\x27\" + req.body.email + \"\\x27\");\n+  if (user && req.body.password === user.password) {\n+    const token = jwt.sign({ id: user.id }, \"hardcoded-secret\");\n+    return { token };\n+  }\n+}"}' | python3 -m json.tool
+```
+
+Look for `CRITICAL` severity findings — PRFlow detects SQL injection, hardcoded secrets, and more.
+
+> 📂 See [`examples/`](examples/) for more runnable demos including a Node.js API client.
+> 📖 Browse all endpoints interactively at http://localhost:3001/api/docs (Swagger UI).
 
 ### Manual Setup (step-by-step)
 
@@ -72,7 +107,7 @@ docker compose -f docker/docker-compose.yml up -d
 cp .env.example .env
 pnpm db:generate
 pnpm db:migrate
-pnpm dev
+pnpm dev:api
 ```
 
 </details>
@@ -88,7 +123,8 @@ See the [Development](#development) section below for the full command list.
 | Service | URL | Description |
 |---------|-----|-------------|
 | API | http://localhost:3001 | Fastify REST API |
-| Dashboard | http://localhost:3000 | Next.js web interface |
+| API Docs | http://localhost:3001/api/docs | Interactive API documentation |
+| Dashboard | http://localhost:3000 | Next.js web interface (start with `pnpm dev`) |
 | PostgreSQL | localhost:5432 | Database |
 | Redis | localhost:6379 | Cache & job queue |
 
@@ -467,6 +503,7 @@ GET  /api/knowledge-graph              # Knowledge graph data
 # Development
 pnpm dev              # Run all services
 pnpm dev:api          # Run API only
+pnpm dev:lite         # Run API without Docker (in-memory mocks)
 pnpm dev:web          # Run dashboard only
 
 # Building
