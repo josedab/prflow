@@ -87,7 +87,15 @@ git checkout -b feature/your-feature-name
 1. Write your code following our style guide
 2. Add tests for new functionality
 3. Update documentation if needed
-4. Run linting and tests locally
+4. Run the smoke test before pushing
+
+### Pre-PR Smoke Test
+
+Run this single command before every push. It builds, lints, and runs the full test suite:
+
+```bash
+pnpm smoke
+```
 
 ### Running Tests
 
