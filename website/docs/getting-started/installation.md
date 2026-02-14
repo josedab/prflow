@@ -79,6 +79,30 @@ For teams that need:
 | PostgreSQL | 14+ |
 | Redis | 7+ |
 
+### One-Command Setup (Recommended)
+
+The bootstrap script handles everything: dependency installation, Docker services, database initialization, and environment configuration.
+
+```bash
+# Clone the repository
+git clone https://github.com/josedab/prflow.git
+cd prflow
+
+# Run the bootstrap script
+pnpm bootstrap
+
+# Start development servers
+pnpm dev
+```
+
+After setup, verify everything is working:
+
+```bash
+pnpm verify
+```
+
+> **No GitHub App needed to start!** The app runs in local exploration mode by default.
+
 ### Quick Start with Docker
 
 ```bash

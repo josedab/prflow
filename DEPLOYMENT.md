@@ -24,7 +24,7 @@ DATABASE_URL=postgresql://user:password@host:5432/prflow
 # Redis
 REDIS_URL=redis://host:6379
 
-# GitHub App (required)
+# GitHub App (required for webhook processing; optional for local dev)
 GITHUB_APP_ID=your-app-id
 GITHUB_APP_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"
 GITHUB_WEBHOOK_SECRET=your-webhook-secret
@@ -56,40 +56,25 @@ cd prflow
 cp .env.example .env
 # Edit .env with your values
 
-# Start all services
-docker compose -f docker/docker-compose.prod.yml up -d
+# Start infrastructure and build
+docker compose -f docker/docker-compose.yml up -d
+pnpm install && pnpm db:generate && pnpm db:migrate
+pnpm build && pnpm start
 ```
 
-### Option 2: Kubernetes (Recommended for Enterprise)
+### Option 2: Kubernetes (Planned)
 
-1. **Create namespace:**
-   ```bash
-   kubectl create namespace prflow
-   ```
-
-2. **Create secrets:**
-   ```bash
-   kubectl create secret generic prflow-secrets \
-     --from-literal=database-url='postgresql://...' \
-     --from-literal=github-app-private-key='...' \
-     --from-literal=github-webhook-secret='...' \
-     --namespace prflow
-   ```
-
-3. **Deploy:**
-   ```bash
-   kubectl apply -f docker/k8s/ -n prflow
-   ```
+> **Note:** Kubernetes manifests are not yet included in this repository.
+> Community contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Option 3: Platform-as-a-Service
 
 #### Railway
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/prflow)
-
-1. Click the button above
-2. Configure environment variables
-3. Deploy
+1. Fork this repository
+2. Create a new project on [Railway](https://railway.app)
+3. Connect your fork and configure environment variables
+4. Deploy
 
 #### Render
 
@@ -100,18 +85,7 @@ docker compose -f docker/docker-compose.prod.yml up -d
 
 #### Fly.io
 
-```bash
-# Install flyctl
-curl -L https://fly.io/install.sh | sh
-
-# Login
-fly auth login
-
-# Deploy
-fly launch --config docker/fly.toml
-fly secrets set GITHUB_APP_PRIVATE_KEY="..."
-fly deploy
-```
+> **Note:** A `fly.toml` configuration is not yet included. You can generate one with `fly launch`.
 
 ## Database Setup
 

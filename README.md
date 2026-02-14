@@ -20,10 +20,10 @@ PRFlow transforms code review from a bottleneck into a streamlined workflow. It 
 
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [Features](#features)
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
-- [Quick Start](#quick-start)
 - [GitHub App Setup](#github-app-setup)
 - [GitHub Action Usage](#github-action-usage)
 - [VS Code Extension](#vs-code-extension)
@@ -32,6 +32,91 @@ PRFlow transforms code review from a bottleneck into a streamlined workflow. It 
 - [Deployment](#deployment)
 - [Contributing](#contributing)
 - [License](#license)
+
+## Quick Start
+
+### Prerequisites
+
+- **Node.js** 20+ (use `nvm install` — reads `.nvmrc` automatically)
+- **pnpm** 9+ (`corepack enable` to activate)
+- **Docker** (for PostgreSQL and Redis)
+
+### One-Command Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/josedab/prflow.git
+cd prflow
+
+# Run the bootstrap script (installs deps, starts Docker, initializes DB)
+pnpm bootstrap
+
+# Start development servers (API on :3001, Dashboard on :3000)
+pnpm dev
+```
+
+> **No GitHub App needed to start!** The app runs in local exploration mode by default.
+> Configure GitHub integration later by editing `.env` — see [GitHub App Setup](#github-app-setup).
+
+`pnpm dev` starts the API at http://localhost:3001 and the Dashboard at http://localhost:3000 in parallel.
+The API is ready when you see `Server running on port 3001` in the output.
+
+### Manual Setup (step-by-step)
+
+<details>
+<summary>Click to expand manual steps</summary>
+
+```bash
+pnpm install
+docker compose -f docker/docker-compose.yml up -d
+cp .env.example .env
+pnpm db:generate
+pnpm db:migrate
+pnpm dev
+```
+
+</details>
+
+### Available Commands
+
+> **`pnpm` is the primary interface.** The `Makefile` provides convenience aliases — use whichever you prefer. Run `make help` to see all available targets.
+
+See the [Development](#development) section below for the full command list.
+
+### Services
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| API | http://localhost:3001 | Fastify REST API |
+| Dashboard | http://localhost:3000 | Next.js web interface |
+| PostgreSQL | localhost:5432 | Database |
+| Redis | localhost:6379 | Cache & job queue |
+
+### Environment Variables
+
+> If you ran `pnpm bootstrap`, these are already set. See [`.env.example`](.env.example) for all options.
+
+```bash
+# ── Required (auto-configured by bootstrap) ──────────
+NODE_ENV=development
+PORT=3001
+LOG_LEVEL=debug
+DATABASE_URL=postgresql://prflow:prflow@localhost:5432/prflow
+REDIS_URL=redis://localhost:6379
+SESSION_SECRET=prflow-dev-session-secret-change-me-in-production-please
+NEXT_PUBLIC_API_URL=http://localhost:3001
+
+# ── Optional: GitHub App (for webhook processing) ────
+# The app starts without these — see "GitHub App Setup" below.
+# GITHUB_APP_ID=
+# GITHUB_APP_PRIVATE_KEY=
+# GITHUB_WEBHOOK_SECRET=
+# GITHUB_CLIENT_ID=
+# GITHUB_CLIENT_SECRET=
+
+# ── Optional: AI features ────────────────────────────
+# COPILOT_API_KEY=
+```
 
 ## Features
 
@@ -229,81 +314,6 @@ prflow/
     └── ARCHITECTURE.md         # Detailed architecture docs
 ```
 
-## Quick Start
-
-### Prerequisites
-
-- **Node.js** 20+
-- **pnpm** 9+
-- **Docker** (for local development)
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/josedab/prflow.git
-cd prflow
-
-# Install dependencies
-pnpm install
-
-# Start infrastructure (PostgreSQL, Redis)
-docker compose -f docker/docker-compose.yml up -d
-
-# Copy environment variables
-cp .env.example .env
-# Edit .env with your GitHub App credentials
-
-# Generate Prisma client
-pnpm db:generate
-
-# Run database migrations
-pnpm db:migrate
-
-# Start development servers
-pnpm dev
-```
-
-### Services
-
-| Service | URL | Description |
-|---------|-----|-------------|
-| API | http://localhost:3001 | Fastify REST API |
-| Dashboard | http://localhost:3000 | Next.js web interface |
-| PostgreSQL | localhost:5432 | Database |
-| Redis | localhost:6379 | Cache & job queue |
-
-### Environment Variables
-
-```bash
-# Application
-NODE_ENV=development
-PORT=3001
-LOG_LEVEL=debug
-
-# Database
-DATABASE_URL=postgresql://prflow:prflow@localhost:5432/prflow
-
-# Redis
-REDIS_URL=redis://localhost:6379
-
-# GitHub App (required)
-GITHUB_APP_ID=your-app-id
-GITHUB_APP_PRIVATE_KEY=your-private-key
-GITHUB_WEBHOOK_SECRET=your-webhook-secret
-GITHUB_CLIENT_ID=your-client-id
-GITHUB_CLIENT_SECRET=your-client-secret
-
-# Copilot SDK
-COPILOT_API_KEY=your-copilot-api-key
-
-# Session
-SESSION_SECRET=your-session-secret-at-least-32-chars
-
-# Dashboard
-NEXT_PUBLIC_API_URL=http://localhost:3001
-```
-
 ## GitHub App Setup
 
 1. **Create a GitHub App** at https://github.com/settings/apps
@@ -465,6 +475,7 @@ pnpm build:api        # Build API only
 
 # Testing
 pnpm test             # Run all tests
+pnpm test:unit        # Run unit tests only (no Docker needed)
 pnpm test:watch       # Run tests in watch mode
 pnpm test:coverage    # Run tests with coverage
 
@@ -507,14 +518,11 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 #### Docker Compose (Recommended for staging)
 
-```bash
-docker compose -f docker/docker-compose.prod.yml up -d
-```
-
-#### Kubernetes (Production)
+> **Note:** Production Docker Compose and Kubernetes manifests are planned but not yet available.
+> For now, use the development `docker-compose.yml` as a starting point:
 
 ```bash
-kubectl apply -f k8s/
+docker compose -f docker/docker-compose.yml up -d
 ```
 
 #### Environment Requirements
@@ -539,8 +547,8 @@ We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) 
 git clone https://github.com/YOUR_USERNAME/prflow.git
 cd prflow
 
-# Install dependencies
-pnpm install
+# Full setup (installs deps, starts Docker, initializes DB)
+pnpm bootstrap
 
 # Create feature branch
 git checkout -b feature/your-feature
@@ -550,6 +558,8 @@ pnpm test
 
 # Submit PR
 ```
+
+> See the [Quick Start](#quick-start) section if you need manual setup steps.
 
 ## License
 

@@ -25,6 +25,123 @@ curl https://your-domain.com/api/health
 
 ---
 
+## Local Development Setup Issues
+
+### Docker Not Running
+
+**Symptoms:**
+```
+✗ Docker is not installed. Install Docker from https://docker.com
+✗ Docker is not running. Start Docker Desktop and try again.
+```
+
+**Solution:**
+
+1. Install [Docker Desktop](https://docker.com)
+2. Start Docker Desktop and wait for the engine to be ready
+3. Verify: `docker info`
+4. Re-run: `pnpm bootstrap`
+
+### Port Conflicts (5432 or 6379 Already in Use)
+
+**Symptoms:**
+```
+Error: Bind for 0.0.0.0:5432 failed: port is already allocated
+Error: Bind for 0.0.0.0:6379 failed: port is already allocated
+```
+
+**Solution:**
+
+```bash
+# Find what's using the port
+lsof -i :5432
+lsof -i :6379
+
+# Stop conflicting services (macOS)
+brew services stop postgresql
+brew services stop redis
+
+# Or stop conflicting Docker containers
+docker ps | grep -E '5432|6379'
+docker stop <container_id>
+
+# Retry
+docker compose -f docker/docker-compose.yml up -d
+```
+
+### Prisma Client Not Generated
+
+**Symptoms:**
+```
+Cannot find module '.prisma/client'
+@prisma/client did not initialize yet
+```
+
+**Solution:**
+
+```bash
+pnpm db:generate
+```
+
+If that fails, ensure Docker containers are running first:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+pnpm db:generate
+pnpm db:migrate
+```
+
+### Missing `.env` File
+
+**Symptoms:**
+```
+PRFlow — Environment Configuration Error
+Missing required environment variables: DATABASE_URL, REDIS_URL, SESSION_SECRET
+```
+
+**Solution:**
+
+```bash
+cp .env.example .env
+```
+
+The defaults in `.env.example` work with the Docker Compose setup. No edits needed for local development.
+
+### Node.js Version Mismatch
+
+**Symptoms:**
+```
+SyntaxError: Unexpected token '??='
+Error: The module was compiled against a different Node.js version
+```
+
+**Solution:**
+
+PRFlow requires Node.js 20+. The repo includes `.nvmrc` and `.node-version` for automatic version switching:
+
+```bash
+# Using nvm
+nvm install
+
+# Using fnm
+fnm install
+
+# Verify
+node -v  # Should be v20.x or higher
+```
+
+### Verify Your Setup
+
+Run the built-in verification script after setup to catch issues early:
+
+```bash
+pnpm verify
+```
+
+This checks Docker, PostgreSQL, Redis, `.env` configuration, and Prisma client status.
+
+---
+
 ## GitHub Action Issues
 
 ### PRFlow Doesn't Run on My PR

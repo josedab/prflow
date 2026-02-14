@@ -23,32 +23,29 @@ Please be respectful and constructive in all interactions. We're all here to bui
    cd prflow
    ```
 
-2. **Install dependencies:**
+2. **Run the bootstrap script** (installs deps, starts Docker, configures `.env`, initializes DB):
    ```bash
-   pnpm install
+   pnpm bootstrap
    ```
 
-3. **Set up environment:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your development values
-   ```
-
-4. **Start infrastructure:**
-   ```bash
-   docker compose -f docker/docker-compose.yml up -d
-   ```
-
-5. **Initialize database:**
-   ```bash
-   pnpm db:generate
-   pnpm db:migrate
-   ```
-
-6. **Start development servers:**
+3. **Start development servers:**
    ```bash
    pnpm dev
    ```
+
+<details>
+<summary>Manual setup (if you prefer step-by-step)</summary>
+
+```bash
+pnpm install
+cp .env.example .env
+docker compose -f docker/docker-compose.yml up -d
+pnpm db:generate
+pnpm db:migrate
+pnpm dev
+```
+
+</details>
 
 ## Project Structure
 
@@ -98,11 +95,14 @@ git checkout -b feature/your-feature-name
 # Run all tests
 pnpm test
 
+# Run unit tests only (no Docker needed)
+pnpm test:unit
+
 # Run specific package tests
 pnpm --filter @prflow/api test
 
 # Run tests in watch mode
-pnpm --filter @prflow/api test -- --watch
+pnpm test:watch
 ```
 
 ### Linting
@@ -112,7 +112,7 @@ pnpm --filter @prflow/api test -- --watch
 pnpm lint
 
 # Auto-fix issues
-pnpm lint -- --fix
+pnpm lint:fix
 
 # Format code
 pnpm format
@@ -296,9 +296,10 @@ vi.mock('../lib/github', () => ({
 ### Adding a New API Endpoint
 
 1. Add route in `apps/api/src/routes/`
-2. Add types in `packages/core/src/models/`
-3. Add tests in `apps/api/src/__tests__/`
-4. Update OpenAPI docs
+2. Import and register the route in `apps/api/src/routes/index.ts`
+3. Add types in `packages/core/src/models/`
+4. Add tests in `apps/api/src/__tests__/`
+5. Update OpenAPI docs
 
 ### Adding a New Agent
 

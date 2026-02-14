@@ -53,6 +53,11 @@ jobs:
       - name: Generate Prisma client
         run: pnpm db:generate
       
+      - name: Run database migrations
+        run: pnpm db:migrate
+        env:
+          DATABASE_URL: postgresql://prflow:prflow@localhost:5432/prflow_test
+      
       - name: Lint
         run: pnpm lint
       
