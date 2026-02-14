@@ -61,6 +61,27 @@ ok "Docker is running"
 
 echo ""
 
+# ─── Check for port conflicts ─────────────────────
+
+info "Checking for port conflicts..."
+PORTS_OK=true
+for PORT_PAIR in "5432:PostgreSQL" "6379:Redis" "3001:API" "3000:Dashboard"; do
+  PORT="${PORT_PAIR%%:*}"
+  SERVICE="${PORT_PAIR##*:}"
+  if lsof -iTCP:"$PORT" -sTCP:LISTEN -t &>/dev/null; then
+    PID=$(lsof -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null | head -1)
+    PROC=$(ps -p "$PID" -o comm= 2>/dev/null || echo "unknown")
+    warn "Port $PORT ($SERVICE) is in use by $PROC (PID $PID)"
+    PORTS_OK=false
+  fi
+done
+
+if [ "$PORTS_OK" = false ]; then
+  warn "Some ports are already in use. The conflicting services may fail to start."
+  echo "  Tip: Stop the conflicting processes, or change ports in .env and docker/docker-compose.yml."
+  echo ""
+fi
+
 # ─── Install dependencies ─────────────────────────
 
 info "Installing dependencies..."
