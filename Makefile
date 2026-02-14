@@ -1,5 +1,5 @@
 # Convenience aliases for pnpm scripts. See package.json for the source of truth.
-.PHONY: help setup verify dev dev-api dev-web test test-unit lint lint-fix format build clean db-up db-down db-reset db-generate db-migrate db-seed db-studio
+.PHONY: help setup verify dev dev-api dev-lite dev-web test test-unit smoke lint lint-fix format build clean db-up db-down db-reset db-generate db-migrate db-seed db-studio
 
 # Default target
 help: ## Show this help
@@ -26,6 +26,9 @@ dev: ## Start all services (API + Dashboard)
 dev-api: ## Start API server only
 	pnpm --filter @prflow/api dev
 
+dev-lite: ## Start API without Docker (in-memory mocks)
+	pnpm dev:lite
+
 dev-web: ## Start web dashboard only
 	pnpm --filter @prflow/web dev
 
@@ -36,6 +39,9 @@ test: ## Run all tests
 
 test-unit: ## Run unit tests (no Docker needed)
 	pnpm --filter @prflow/api test -- --testPathPattern='__tests__/(?!routes)' --run
+
+smoke: ## Build, lint, and test — run before every PR
+	pnpm smoke
 
 lint: ## Run ESLint on all packages
 	pnpm lint
