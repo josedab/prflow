@@ -6,7 +6,7 @@ async function main() {
   console.log('🌱 Seeding PRFlow database with demo data...\n');
 
   // Clean existing demo data
-  await prisma.prSynthesis.deleteMany();
+  await prisma.pRSynthesis.deleteMany();
   await prisma.docUpdate.deleteMany();
   await prisma.generatedTest.deleteMany();
   await prisma.fixApplication.deleteMany();
