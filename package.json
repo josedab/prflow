@@ -8,6 +8,7 @@
     "bootstrap": "bash scripts/bootstrap.sh",
     "dev": "turbo dev",
     "dev:api": "pnpm --filter @prflow/api dev",
+    "dev:lite": "pnpm --filter @prflow/api dev:lite",
     "dev:web": "pnpm --filter @prflow/web dev",
     "build": "turbo build",
     "build:api": "pnpm --filter @prflow/api build",
@@ -25,6 +26,7 @@
     "db:seed": "pnpm --filter @prflow/db seed",
     "db:studio": "pnpm --filter @prflow/db studio",
     "verify": "bash scripts/verify.sh",
+    "smoke": "turbo build && turbo lint && pnpm --filter @prflow/api test -- --run",
     "clean": "turbo clean && rm -rf node_modules"
   },
   "devDependencies": {
