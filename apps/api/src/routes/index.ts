@@ -47,7 +47,7 @@ import { conflictPreventionRoutes } from './conflict-prevention.js';
 import { runbookRoutes } from './runbook.js';
 import { voiceReviewRoutes } from './voice-review.js';
 
-// Next-Gen Features (Round 2)
+// AI & pair programming
 import { aiPairProgrammingRoutes } from './ai-pair-programming.js';
 import { enhancedPredictiveHealthRoutes } from './enhanced-predictive-health.js';
 import { crossRepoImpactRoutes } from './cross-repo-impact.js';
@@ -59,7 +59,7 @@ import { developerSkillProfilerRoutes } from './developer-skill-profiler.js';
 import { selfHealingCIRoutes } from './self-healing-ci.js';
 import { voiceReviewInterfaceRoutes } from './voice-review-interface.js';
 
-// Next-Gen Features (Round 3)
+// Advanced splitting, canvas & onboarding
 import { intelligentSplittingRoutes } from './intelligent-splitting.js';
 import { collaborativeCanvasRoutes } from './collaborative-canvas.js';
 import { customRulesRoutes } from './custom-rules.js';
@@ -71,6 +71,29 @@ import { prDescriptionRoutes } from './pr-description.js';
 import { securityThreatModelRoutes } from './security-threat-model.js';
 import { developerGrowthRoutes } from './developer-growth.js';
 import { playgroundRoutes } from './playground.js';
+
+// Compliance, review insights & collaboration
+import { compliancePoliciesRoutes } from './compliance-policies.js';
+import { teamReviewInsightsRoutes } from './team-review-insights.js';
+import { confidenceCalibrationRoutes } from './confidence-calibration.js';
+import { reviewMemoryRoutes } from './review-memory.js';
+import { autoFixRoutes } from './auto-fix.js';
+import { mergeTrainRoutes } from './merge-train.js';
+import { multiTenancyRoutes } from './multi-tenancy.js';
+import { nlCreationV2Routes } from './nl-creation-v2.js';
+import { collaborativeReviewV2Routes } from './collaborative-review-v2.js';
+import { reviewInEditorRoutes } from './review-in-editor.js';
+
+// LLM, config & extensibility
+import { llmRoutingRoutes } from './llm-routing.js';
+import { reviewConfigRoutes } from './review-config.js';
+import { feedbackLearningRoutes } from './feedback-learning.js';
+import { riskHeatmapRoutes } from './risk-heatmap.js';
+import { copilotExtensionsRoutes } from './copilot-extensions.js';
+import { streamingReviewRoutes } from './streaming-review.js';
+import { crossPRGraphRoutes as crossPRImpactGraphRoutes } from './cross-pr-impact-graph.js';
+import { pluginSDKRoutes } from './plugin-sdk.js';
+import { prDecompositionEnhancedRoutes } from './pr-decomposition-enhanced.js';
 
 export async function setupRoutes(app: FastifyInstance) {
   await app.register(healthRoutes, { prefix: '/api' });
@@ -90,10 +113,11 @@ export async function setupRoutes(app: FastifyInstance) {
   await app.register(prSplittingRoutes, { prefix: '/api/splitting' });
   await app.register(collaborativeReviewRoutes, { prefix: '/api/collab' });
   await app.register(securityRoutes, { prefix: '/api/security' });
-  await app.register(conflictResolutionRoutes);
-  await app.register(reviewPersonasRoutes);
-  await app.register(testPrioritizationRoutes);
-  await app.register(multiRepoOrchestrationRoutes);
+  // Routes below define full paths internally (e.g. '/api/workflows/:id/conflicts')
+  await app.register(conflictResolutionRoutes); // /api/workflows/:id/conflicts/*, /api/conflicts/*
+  await app.register(reviewPersonasRoutes); // /api/personas/*
+  await app.register(testPrioritizationRoutes); // /api/workflows/:id/tests/*, /api/tests/*
+  await app.register(multiRepoOrchestrationRoutes); // /api/multi-repo/*
   await app.register(pairReviewRoutes, { prefix: '/api/pair-review' });
   await app.register(predictiveHealthRoutes, { prefix: '/api/predictions' });
   await app.register(knowledgeGraphRoutes, { prefix: '/api/graph' });
@@ -119,19 +143,19 @@ export async function setupRoutes(app: FastifyInstance) {
   await app.register(runbookRoutes, { prefix: '/api/runbooks' });
   await app.register(voiceReviewRoutes, { prefix: '/api/voice' });
 
-  // Next-Gen Features (Round 2)
-  await app.register(aiPairProgrammingRoutes);
-  await app.register(enhancedPredictiveHealthRoutes);
-  await app.register(crossRepoImpactRoutes);
-  await app.register(nlPRCreationRoutes);
-  await app.register(enhancedReviewDebtRoutes);
-  await app.register(aiConflictPreventionRoutes);
-  await app.register(regulatoryComplianceRoutes);
-  await app.register(developerSkillProfilerRoutes);
-  await app.register(selfHealingCIRoutes);
-  await app.register(voiceReviewInterfaceRoutes);
+  // Routes below define full paths internally (e.g. '/api/pair-programming/...')
+  await app.register(aiPairProgrammingRoutes); // /api/pair-programming/*
+  await app.register(enhancedPredictiveHealthRoutes); // /api/health-score/* (comprehensive)
+  await app.register(crossRepoImpactRoutes); // /api/cross-repo/*
+  await app.register(nlPRCreationRoutes); // /api/nl-pr/*
+  await app.register(enhancedReviewDebtRoutes); // /api/review-debt/*
+  await app.register(aiConflictPreventionRoutes); // /api/conflict-prevention/*
+  await app.register(regulatoryComplianceRoutes); // /api/compliance/* (regulatory)
+  await app.register(developerSkillProfilerRoutes); // /api/skills/*
+  await app.register(selfHealingCIRoutes); // /api/ci/*
+  await app.register(voiceReviewInterfaceRoutes); // /api/voice/* (interface)
 
-  // Next-Gen Features (Round 3)
+  // Advanced PR analysis & splitting
   await app.register(intelligentSplittingRoutes, { prefix: '/api/auto-split' });
   await app.register(collaborativeCanvasRoutes, { prefix: '/api/canvas' });
   await app.register(customRulesRoutes, { prefix: '/api/custom-rules' });
@@ -145,6 +169,29 @@ export async function setupRoutes(app: FastifyInstance) {
 
   registerBatchRoutes(app);
   registerOpenAPI(app);
+
+  // LLM, config & extensibility
+  await app.register(llmRoutingRoutes, { prefix: '/api/llm' });
+  await app.register(reviewConfigRoutes, { prefix: '/api/config' });
+  await app.register(feedbackLearningRoutes, { prefix: '/api/learning' });
+  await app.register(riskHeatmapRoutes, { prefix: '/api/risk-heatmap' });
+  await app.register(copilotExtensionsRoutes, { prefix: '/api/copilot' });
+  await app.register(streamingReviewRoutes, { prefix: '/api/streaming' });
+  await app.register(crossPRImpactGraphRoutes, { prefix: '/api/pr-graph' });
+  await app.register(pluginSDKRoutes, { prefix: '/api/plugins' });
+  await app.register(prDecompositionEnhancedRoutes, { prefix: '/api/decompose' });
+
+  // Compliance, review insights & collaboration
+  await app.register(compliancePoliciesRoutes, { prefix: '/api/compliance' });
+  await app.register(teamReviewInsightsRoutes, { prefix: '/api/insights' });
+  await app.register(confidenceCalibrationRoutes, { prefix: '/api/calibration-v2' });
+  await app.register(reviewMemoryRoutes, { prefix: '/api/memory' });
+  await app.register(autoFixRoutes, { prefix: '/api/auto-fix' });
+  await app.register(mergeTrainRoutes, { prefix: '/api/merge-train' });
+  await app.register(multiTenancyRoutes, { prefix: '/api/tenants' });
+  await app.register(nlCreationV2Routes, { prefix: '/api/nl-create' });
+  await app.register(collaborativeReviewV2Routes, { prefix: '/api/collab-v2' });
+  await app.register(reviewInEditorRoutes, { prefix: '/api/editor' });
 
   // Playground (dev-only — provides sample analysis without GitHub integration)
   await app.register(playgroundRoutes, { prefix: '/api/playground' });

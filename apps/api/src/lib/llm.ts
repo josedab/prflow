@@ -10,11 +10,14 @@ export interface LLMTool {
   description: string;
   parameters: {
     type: 'object';
-    properties: Record<string, {
-      type: string;
-      description?: string;
-      enum?: string[];
-    }>;
+    properties: Record<
+      string,
+      {
+        type: string;
+        description?: string;
+        enum?: string[];
+      }
+    >;
     required?: string[];
   };
 }
@@ -73,7 +76,7 @@ export class OpenAIProvider implements LLMProvider {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
         model: options?.model || this.defaultModel,
@@ -98,7 +101,7 @@ export class OpenAIProvider implements LLMProvider {
       throw new Error(`OpenAI API error: ${response.status} - ${error}`);
     }
 
-    const data = await response.json() as {
+    const data = (await response.json()) as {
       choices: Array<{
         message: {
           content: string | null;
@@ -117,7 +120,7 @@ export class OpenAIProvider implements LLMProvider {
     };
 
     const choice = data.choices[0];
-    
+
     return {
       content: choice.message.content || '',
       toolCalls: choice.message.tool_calls?.map((tc) => ({
@@ -125,11 +128,13 @@ export class OpenAIProvider implements LLMProvider {
         name: tc.function.name,
         arguments: JSON.parse(tc.function.arguments),
       })),
-      usage: data.usage ? {
-        promptTokens: data.usage.prompt_tokens,
-        completionTokens: data.usage.completion_tokens,
-        totalTokens: data.usage.total_tokens,
-      } : undefined,
+      usage: data.usage
+        ? {
+            promptTokens: data.usage.prompt_tokens,
+            completionTokens: data.usage.completion_tokens,
+            totalTokens: data.usage.total_tokens,
+          }
+        : undefined,
       finishReason: choice.finish_reason as LLMResponse['finishReason'],
     };
   }
@@ -183,7 +188,7 @@ export class AnthropicProvider implements LLMProvider {
       throw new Error(`Anthropic API error: ${response.status} - ${error}`);
     }
 
-    const data = await response.json() as {
+    const data = (await response.json()) as {
       content: Array<{
         type: 'text' | 'tool_use';
         text?: string;
@@ -213,8 +218,12 @@ export class AnthropicProvider implements LLMProvider {
         completionTokens: data.usage.output_tokens,
         totalTokens: data.usage.input_tokens + data.usage.output_tokens,
       },
-      finishReason: data.stop_reason === 'end_turn' ? 'stop' : 
-                    data.stop_reason === 'tool_use' ? 'tool_calls' : 'stop',
+      finishReason:
+        data.stop_reason === 'end_turn'
+          ? 'stop'
+          : data.stop_reason === 'tool_use'
+            ? 'tool_calls'
+            : 'stop',
     };
   }
 }
@@ -234,7 +243,7 @@ export class MockLLMProvider implements LLMProvider {
 
   async call(messages: LLMMessage[], _options?: LLMOptions): Promise<LLMResponse> {
     const lastMessage = messages[messages.length - 1].content;
-    
+
     // Check for matching patterns
     for (const [pattern, response] of this.responses) {
       if (lastMessage.includes(pattern)) {
@@ -244,7 +253,7 @@ export class MockLLMProvider implements LLMProvider {
 
     // Default mock response
     await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate latency
-    
+
     return {
       content: `Mock response for: ${lastMessage.substring(0, 100)}...`,
       usage: {
@@ -269,7 +278,7 @@ class LLMManager {
     // Initialize OpenAI provider if configured
     const openaiKey = process.env.OPENAI_API_KEY;
     if (openaiKey) {
-      const openai = new OpenAIProvider({ 
+      const openai = new OpenAIProvider({
         apiKey: openaiKey,
         model: process.env.OPENAI_MODEL,
       });
@@ -280,7 +289,7 @@ class LLMManager {
     // Initialize Anthropic provider if configured
     const anthropicKey = process.env.ANTHROPIC_API_KEY;
     if (anthropicKey) {
-      const anthropic = new AnthropicProvider({ 
+      const anthropic = new AnthropicProvider({
         apiKey: anthropicKey,
         model: process.env.ANTHROPIC_MODEL,
       });
@@ -293,10 +302,13 @@ class LLMManager {
     this.providers.push(mock);
     if (!this.defaultProvider) this.defaultProvider = mock;
 
-    logger.info({ 
-      providers: this.providers.map((p) => p.name),
-      default: this.defaultProvider?.name,
-    }, 'LLM providers initialized');
+    logger.info(
+      {
+        providers: this.providers.map((p) => p.name),
+        default: this.defaultProvider?.name,
+      },
+      'LLM providers initialized'
+    );
   }
 
   getProvider(name?: string): LLMProvider {
@@ -307,37 +319,46 @@ class LLMManager {
     return this.defaultProvider!;
   }
 
-  async call(messages: LLMMessage[], options?: LLMOptions & { provider?: string }): Promise<LLMResponse> {
+  async call(
+    messages: LLMMessage[],
+    options?: LLMOptions & { provider?: string }
+  ): Promise<LLMResponse> {
     const provider = this.getProvider(options?.provider);
-    
-    logger.debug({ 
-      provider: provider.name, 
-      messageCount: messages.length,
-      hasTools: !!options?.tools?.length,
-    }, 'LLM call');
+
+    logger.debug(
+      {
+        provider: provider.name,
+        messageCount: messages.length,
+        hasTools: !!options?.tools?.length,
+      },
+      'LLM call'
+    );
 
     const startTime = Date.now();
-    
+
     try {
       const response = await provider.call(messages, options);
-      
-      logger.debug({ 
-        provider: provider.name,
-        latencyMs: Date.now() - startTime,
-        usage: response.usage,
-      }, 'LLM call completed');
-      
+
+      logger.debug(
+        {
+          provider: provider.name,
+          latencyMs: Date.now() - startTime,
+          usage: response.usage,
+        },
+        'LLM call completed'
+      );
+
       return response;
     } catch (error) {
       logger.error({ error, provider: provider.name }, 'LLM call failed');
-      
+
       // Try fallback to mock provider
       if (provider.name !== 'mock') {
         logger.info('Falling back to mock provider');
         const mock = this.providers.find((p) => p.name === 'mock')!;
         return mock.call(messages, options);
       }
-      
+
       throw error;
     }
   }
@@ -355,8 +376,8 @@ export function getLLMManager(): LLMManager {
 
 // Convenience function
 export async function callLLM(
-  messages: LLMMessage[], 
-  options?: LLMOptions & { provider?: string }
+  messages: LLMMessage[],
+  options?: LLMOptions & { provider?: string; taskType?: string; complexity?: string }
 ): Promise<LLMResponse> {
   return getLLMManager().call(messages, options);
 }
