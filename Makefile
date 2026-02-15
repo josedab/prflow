@@ -38,7 +38,7 @@ test: ## Run all tests
 	pnpm test
 
 test-unit: ## Run unit tests (no Docker needed)
-	pnpm --filter @prflow/api test -- --testPathPattern='__tests__/(?!routes)' --run
+	pnpm --filter @prflow/api test -- --run --exclude='**/routes/**'
 
 smoke: ## Build, lint, and test — run before every PR
 	pnpm smoke

@@ -5,8 +5,8 @@ This guide covers deploying PRFlow to production environments.
 ## Prerequisites
 
 - Node.js 20+
-- PostgreSQL 14+
-- Redis 6+
+- PostgreSQL 16+
+- Redis 7+
 - Docker (optional, for containerized deployment)
 
 ## Environment Variables
@@ -145,10 +145,10 @@ psql $DATABASE_URL < backup-20240101.sql
 server {
     listen 443 ssl http2;
     server_name prflow.yourdomain.com;
-    
+
     ssl_certificate /etc/letsencrypt/live/prflow.yourdomain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/prflow.yourdomain.com/privkey.pem;
-    
+
     location / {
         proxy_pass http://localhost:3001;
         proxy_http_version 1.1;
@@ -160,7 +160,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
     }
-    
+
     # WebSocket support
     location /ws {
         proxy_pass http://localhost:3001;

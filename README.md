@@ -40,7 +40,7 @@ PRFlow transforms code review from a bottleneck into a streamlined workflow. It 
 
 - **Node.js** 20+ (use `nvm install` — reads `.nvmrc` automatically)
 - **pnpm** 9+ (`corepack enable` to activate)
-- **Docker** (for PostgreSQL and Redis — *not needed for lite mode*)
+- **Docker** (for PostgreSQL and Redis — _not needed for lite mode_)
 
 ### Zero-Config Quick Try (No Docker)
 
@@ -120,13 +120,13 @@ See the [Development](#development) section below for the full command list.
 
 ### Services
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| API | http://localhost:3001 | Fastify REST API |
-| API Docs | http://localhost:3001/api/docs | Interactive API documentation |
-| Dashboard | http://localhost:3000 | Next.js web interface (start with `pnpm dev`) |
-| PostgreSQL | localhost:5432 | Database |
-| Redis | localhost:6379 | Cache & job queue |
+| Service    | URL                            | Description                                   |
+| ---------- | ------------------------------ | --------------------------------------------- |
+| API        | http://localhost:3001          | Fastify REST API                              |
+| API Docs   | http://localhost:3001/api/docs | Interactive API documentation                 |
+| Dashboard  | http://localhost:3000          | Next.js web interface (start with `pnpm dev`) |
+| PostgreSQL | localhost:5432                 | Database                                      |
+| Redis      | localhost:6379                 | Cache & job queue                             |
 
 ### Environment Variables
 
@@ -158,30 +158,30 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 ### Core Capabilities
 
-| Feature | Description |
-|---------|-------------|
-| 🔍 **PR Analysis** | Semantic change detection, impact analysis, risk assessment |
-| 🐛 **Code Review** | Automated bug, security, and performance issue detection |
-| 🧪 **Test Generation** | Automatic unit test creation for new code |
-| 📝 **Documentation** | JSDoc generation and README updates |
-| 👥 **Smart Assignment** | Intelligent reviewer suggestions based on expertise |
-| 🔀 **Merge Orchestration** | Automated merge queue management |
-| 📊 **Analytics** | Team metrics and productivity insights |
+| Feature                    | Description                                                 |
+| -------------------------- | ----------------------------------------------------------- |
+| 🔍 **PR Analysis**         | Semantic change detection, impact analysis, risk assessment |
+| 🐛 **Code Review**         | Automated bug, security, and performance issue detection    |
+| 🧪 **Test Generation**     | Automatic unit test creation for new code                   |
+| 📝 **Documentation**       | JSDoc generation and README updates                         |
+| 👥 **Smart Assignment**    | Intelligent reviewer suggestions based on expertise         |
+| 🔀 **Merge Orchestration** | Automated merge queue management                            |
+| 📊 **Analytics**           | Team metrics and productivity insights                      |
 
 ### Enterprise Features
 
-| Feature | Description |
-|---------|-------------|
-| 🔐 **Security & Compliance** | Vulnerability scanning, compliance checking, audit logs |
-| 🎓 **Learning Paths** | Interactive training and knowledge management |
-| 📈 **Technical Debt Dashboard** | Track and manage technical debt across repositories |
-| 🔗 **Multi-Repo Orchestration** | Cross-repository analysis and dependency tracking |
-| 🤖 **ML Training Pipeline** | Learn from historical reviews to improve suggestions |
-| 💡 **Natural Language Queries** | Ask questions about code changes in plain English |
-| 🎭 **Review Personas** | Configurable review styles (strict, mentor, quick) |
-| ⚡ **Predictive CI** | Predict CI failures before they happen |
-| ✂️ **PR Splitting** | Automatically decompose large PRs into reviewable chunks |
-| 🔄 **Auto-Remediation** | One-click fixes for common issues |
+| Feature                         | Description                                              |
+| ------------------------------- | -------------------------------------------------------- |
+| 🔐 **Security & Compliance**    | Vulnerability scanning, compliance checking, audit logs  |
+| 🎓 **Learning Paths**           | Interactive training and knowledge management            |
+| 📈 **Technical Debt Dashboard** | Track and manage technical debt across repositories      |
+| 🔗 **Multi-Repo Orchestration** | Cross-repository analysis and dependency tracking        |
+| 🤖 **ML Training Pipeline**     | Learn from historical reviews to improve suggestions     |
+| 💡 **Natural Language Queries** | Ask questions about code changes in plain English        |
+| 🎭 **Review Personas**          | Configurable review styles (strict, mentor, quick)       |
+| ⚡ **Predictive CI**            | Predict CI failures before they happen                   |
+| ✂️ **PR Splitting**             | Automatically decompose large PRs into reviewable chunks |
+| 🔄 **Auto-Remediation**         | One-click fixes for common issues                        |
 
 ## Architecture
 
@@ -317,7 +317,7 @@ prflow/
 │   ├── api/                    # Main API service (Fastify)
 │   │   ├── src/
 │   │   │   ├── agents/         # AI agents (21 specialized agents)
-│   │   │   ├── routes/         # API endpoints (43 route files)
+│   │   │   ├── routes/         # API endpoints (90+ route files)
 │   │   │   ├── services/       # Business logic services
 │   │   │   ├── jobs/           # Background job workers
 │   │   │   └── lib/            # Utilities (logger, rate limiting, WebSocket)
@@ -356,13 +356,13 @@ prflow/
 
 2. **Configure permissions:**
 
-   | Permission | Access | Purpose |
-   |------------|--------|---------|
-   | Contents | Read | Read repository files |
-   | Pull requests | Read & Write | Create review comments |
-   | Checks | Read & Write | Report analysis status |
-   | Issues | Read & Write | Create follow-up issues |
-   | Metadata | Read | Repository information |
+   | Permission    | Access       | Purpose                 |
+   | ------------- | ------------ | ----------------------- |
+   | Contents      | Read         | Read repository files   |
+   | Pull requests | Read & Write | Create review comments  |
+   | Checks        | Read & Write | Report analysis status  |
+   | Issues        | Read & Write | Create follow-up issues |
+   | Metadata      | Read         | Repository information  |
 
 3. **Subscribe to events:**
    - `pull_request`
@@ -407,22 +407,22 @@ jobs:
           doc-updates: true
 
           # Configuration
-          severity-threshold: medium  # critical, high, medium, low
+          severity-threshold: medium # critical, high, medium, low
           auto-fix-style: true
           block-on-critical: true
 ```
 
 ### Action Inputs
 
-| Input | Default | Description |
-|-------|---------|-------------|
-| `github-token` | required | GitHub token for API access |
-| `review-enabled` | `true` | Enable automated code review |
-| `test-generation` | `true` | Generate unit tests for new code |
-| `doc-updates` | `true` | Suggest documentation updates |
-| `severity-threshold` | `medium` | Minimum severity to report |
-| `auto-fix-style` | `true` | Auto-fix style issues |
-| `block-on-critical` | `true` | Block merge on critical issues |
+| Input                | Default  | Description                      |
+| -------------------- | -------- | -------------------------------- |
+| `github-token`       | required | GitHub token for API access      |
+| `review-enabled`     | `true`   | Enable automated code review     |
+| `test-generation`    | `true`   | Generate unit tests for new code |
+| `doc-updates`        | `true`   | Suggest documentation updates    |
+| `severity-threshold` | `medium` | Minimum severity to report       |
+| `auto-fix-style`     | `true`   | Auto-fix style issues            |
+| `block-on-critical`  | `true`   | Block merge on critical issues   |
 
 ## VS Code Extension
 
@@ -444,12 +444,12 @@ The PRFlow VS Code extension provides pre-flight checks before you commit:
 
 ### Commands
 
-| Command | Description |
-|---------|-------------|
-| `PRFlow: Run Pre-Flight Check` | Analyze entire project |
-| `PRFlow: Check Current File` | Analyze current file only |
-| `PRFlow: Show Results` | Open results panel |
-| `PRFlow: Configure` | Open settings |
+| Command                        | Description               |
+| ------------------------------ | ------------------------- |
+| `PRFlow: Run Pre-Flight Check` | Analyze entire project    |
+| `PRFlow: Check Current File`   | Analyze current file only |
+| `PRFlow: Show Results`         | Open results panel        |
+| `PRFlow: Configure`            | Open settings             |
 
 ## API Reference
 
@@ -458,12 +458,14 @@ See [docs/API.md](docs/API.md) for the complete API reference.
 ### Quick Reference
 
 #### Health & Status
+
 ```
 GET  /api/health              # Health check
 GET  /api/health/ready        # Readiness check
 ```
 
 #### Repositories
+
 ```
 GET  /api/repositories                       # List repositories
 GET  /api/repositories/:owner/:repo          # Get repository
@@ -471,6 +473,7 @@ PATCH /api/repositories/:owner/:repo/settings # Update settings
 ```
 
 #### Workflows
+
 ```
 GET  /api/workflows                # List workflows
 GET  /api/workflows/:id            # Get workflow details
@@ -480,6 +483,7 @@ POST /api/workflows/:id/retry      # Retry failed workflow
 ```
 
 #### Analytics
+
 ```
 GET  /api/analytics/metrics        # Team metrics
 GET  /api/analytics/trends         # Trend data
@@ -487,6 +491,7 @@ GET  /api/analytics/export         # Export metrics (CSV/JSON)
 ```
 
 #### Enterprise
+
 ```
 GET  /api/enterprise/team-analytics    # Team performance
 GET  /api/merge-queue                  # Merge queue status

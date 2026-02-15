@@ -55,7 +55,6 @@ When deploying PRFlow, ensure you follow these security practices:
 ### Environment Variables
 
 - **Never commit `.env` files** to version control
-- Use strong, unique values for `JWT_SECRET` (minimum 32 characters)
 - Use strong, unique values for `SESSION_SECRET` (minimum 32 characters)
 - Rotate secrets periodically
 
@@ -95,4 +94,4 @@ PRFlow includes built-in security features:
 
 We thank the following individuals for responsibly disclosing security issues:
 
-*No security issues have been reported yet.*
+_No security issues have been reported yet._

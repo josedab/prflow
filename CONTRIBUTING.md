@@ -18,12 +18,14 @@ Please be respectful and constructive in all interactions. We're all here to bui
 ### Development Setup
 
 1. **Fork and clone the repository:**
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/prflow.git
    cd prflow
    ```
 
 2. **Run the bootstrap script** (installs deps, starts Docker, configures `.env`, initializes DB):
+
    ```bash
    pnpm bootstrap
    ```
@@ -68,7 +70,6 @@ prflow/
 ### Branching Strategy
 
 - `main` - Production-ready code
-- `develop` - Integration branch for features
 - `feature/*` - New features
 - `fix/*` - Bug fixes
 - `docs/*` - Documentation updates
@@ -76,9 +77,9 @@ prflow/
 ### Creating a Branch
 
 ```bash
-# From develop branch
-git checkout develop
-git pull origin develop
+# From main branch
+git checkout main
+git pull origin main
 git checkout -b feature/your-feature-name
 ```
 
@@ -144,9 +145,10 @@ pnpm --filter @prflow/api build
    - Link related issues
 
 2. **PR Title Format:**
+
    ```
    type(scope): description
-   
+
    Examples:
    feat(api): add merge queue support
    fix(web): correct analytics chart rendering
@@ -249,10 +251,10 @@ describe('FeatureName', () => {
     it('should do something specific', () => {
       // Arrange
       const input = createTestInput();
-      
+
       // Act
       const result = methodName(input);
-      
+
       // Assert
       expect(result).toEqual(expectedOutput);
     });
