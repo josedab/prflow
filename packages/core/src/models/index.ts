@@ -7,7 +7,15 @@ import { z } from 'zod';
 /**
  * Types of pull requests based on their purpose
  */
-export const PRTypeSchema = z.enum(['feature', 'bugfix', 'refactor', 'docs', 'chore', 'test', 'deps']);
+export const PRTypeSchema = z.enum([
+  'feature',
+  'bugfix',
+  'refactor',
+  'docs',
+  'chore',
+  'test',
+  'deps',
+]);
 export type PRType = z.infer<typeof PRTypeSchema>;
 
 /**
@@ -300,7 +308,14 @@ export interface ReviewResult {
 // ============================================
 
 /** Supported test frameworks */
-export type TestFramework = 'jest' | 'vitest' | 'mocha' | 'pytest' | 'go_test' | 'rspec' | 'unknown';
+export type TestFramework =
+  | 'jest'
+  | 'vitest'
+  | 'mocha'
+  | 'pytest'
+  | 'go_test'
+  | 'rspec'
+  | 'unknown';
 
 /**
  * A generated test file for a source file
@@ -873,3 +888,98 @@ export * from './security-threat-model.js';
 // Developer Growth Dashboard (Next-Gen Round 3)
 // ============================================
 export * from './developer-growth.js';
+
+// ============================================
+// Multi-Provider LLM Routing (Next-Gen Round 4)
+// ============================================
+export * from './llm-routing.js';
+
+// ============================================
+// Review-as-Code Configuration (Next-Gen Round 4)
+// ============================================
+export * from './review-config.js';
+
+// ============================================
+// Incremental Learning from Feedback (Next-Gen Round 4)
+// ============================================
+export * from './feedback-learning.js';
+
+// ============================================
+// PR Risk Heatmap (Next-Gen Round 4)
+// ============================================
+export * from './risk-heatmap.js';
+
+// ============================================
+// Copilot Extensions (Next-Gen Round 4)
+// ============================================
+export * from './copilot-extensions.js';
+
+// ============================================
+// Streaming Review (Next-Gen Round 4)
+// ============================================
+export * from './streaming-review.js';
+
+// ============================================
+// Cross-PR Impact Graph (Next-Gen Round 4)
+// ============================================
+export * from './cross-pr-graph.js';
+
+// ============================================
+// Plugin SDK (Next-Gen Round 4)
+// ============================================
+export * from './plugin-sdk.js';
+
+// ============================================
+// PR Decomposition Enhanced (Next-Gen Round 4)
+// ============================================
+export * from './pr-decomposition-enhanced.js';
+
+// ============================================
+// Compliance-as-Code Policies (Next-Gen Round 5)
+// ============================================
+export * from './compliance-policies.js';
+
+// ============================================
+// Team Review Insights Dashboard (Next-Gen Round 5)
+// ============================================
+export * from './team-review-insights.js';
+
+// ============================================
+// AI Confidence Calibration (Next-Gen Round 5)
+// ============================================
+export * from './confidence-calibration.js';
+
+// ============================================
+// Review Memory Graph (Next-Gen Round 5)
+// ============================================
+export * from './review-memory.js';
+
+// ============================================
+// Auto-Fix Pipeline (Next-Gen Round 5)
+// ============================================
+export * from './auto-fix.js';
+
+// ============================================
+// Intelligent Merge Train (Next-Gen Round 5)
+// ============================================
+export * from './merge-train.js';
+
+// ============================================
+// Multi-Tenancy / SaaS (Next-Gen Round 5)
+// ============================================
+export * from './multi-tenancy.js';
+
+// ============================================
+// NL PR Creation v2 (Next-Gen Round 5)
+// ============================================
+export * from './nl-creation-v2.js';
+
+// ============================================
+// Real-Time Collaborative Review v2 (Next-Gen Round 5)
+// ============================================
+export * from './collaborative-review-v2.js';
+
+// ============================================
+// Review-in-Editor / LSP (Next-Gen Round 5)
+// ============================================
+export * from './review-in-editor.js';
