@@ -21,6 +21,28 @@ const envSchema = z.object({
   // Copilot SDK
   COPILOT_API_KEY: z.string().optional(),
 
+  // Multi-Provider LLM Configuration
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_MODEL: z.string().optional(),
+  OPENAI_BASE_URL: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  ANTHROPIC_MODEL: z.string().optional(),
+  GOOGLE_AI_API_KEY: z.string().optional(),
+  GOOGLE_AI_MODEL: z.string().optional(),
+  OLLAMA_BASE_URL: z.string().optional(),
+  OLLAMA_MODEL: z.string().optional(),
+  LLM_ROUTING_STRATEGY: z
+    .enum(['cost-optimized', 'quality-optimized', 'latency-optimized', 'air-gapped'])
+    .optional(),
+
+  // GitLab Integration (optional)
+  GITLAB_ACCESS_TOKEN: z.string().optional(),
+  GITLAB_BASE_URL: z.string().optional(),
+
+  // Bitbucket Integration (optional)
+  BITBUCKET_ACCESS_TOKEN: z.string().optional(),
+  BITBUCKET_BASE_URL: z.string().optional(),
+
   // Session
   SESSION_SECRET: z.string().min(32),
 });
@@ -28,10 +50,14 @@ const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>;
 
 const fieldHelp: Record<string, string> = {
-  DATABASE_URL: 'PostgreSQL connection string. Start Postgres: docker compose -f docker/docker-compose.yml up -d',
-  REDIS_URL: 'Redis connection string. Start Redis: docker compose -f docker/docker-compose.yml up -d',
-  SESSION_SECRET: 'Must be ≥ 32 characters. Generate one: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"',
-  GITHUB_APP_ID: 'Your GitHub App ID. Create one at https://github.com/settings/apps (optional for local dev)',
+  DATABASE_URL:
+    'PostgreSQL connection string. Start Postgres: docker compose -f docker/docker-compose.yml up -d',
+  REDIS_URL:
+    'Redis connection string. Start Redis: docker compose -f docker/docker-compose.yml up -d',
+  SESSION_SECRET:
+    "Must be ≥ 32 characters. Generate one: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
+  GITHUB_APP_ID:
+    'Your GitHub App ID. Create one at https://github.com/settings/apps (optional for local dev)',
   GITHUB_APP_PRIVATE_KEY: 'GitHub App private key (PEM format). See README.md#github-app-setup',
   GITHUB_WEBHOOK_SECRET: 'GitHub webhook secret. See README.md#github-app-setup',
   GITHUB_CLIENT_ID: 'GitHub App OAuth client ID. See README.md#github-app-setup',
@@ -39,9 +65,11 @@ const fieldHelp: Record<string, string> = {
 };
 
 function formatConfigErrors(error: z.ZodError): string {
-  const lines = ['\n╔══════════════════════════════════════════════════╗',
-                  '║     PRFlow — Environment Configuration Error     ║',
-                  '╚══════════════════════════════════════════════════╝\n'];
+  const lines = [
+    '\n╔══════════════════════════════════════════════════╗',
+    '║     PRFlow — Environment Configuration Error     ║',
+    '╚══════════════════════════════════════════════════╝\n',
+  ];
 
   for (const issue of error.issues) {
     const field = issue.path.join('.');
